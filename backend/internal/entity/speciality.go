@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Speciality représente une spécialité.
 type Speciality struct {
 	ID           int64     `json:"id"`
 	Name         string    `json:"name"`
@@ -11,7 +10,6 @@ type Speciality struct {
 	DepartmentID *int64    `json:"department_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
-
 
 	Department *Department `json:"department,omitempty"`
 }

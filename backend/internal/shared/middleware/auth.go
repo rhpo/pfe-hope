@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// AuthRequired vérifie la présence et la validité du token JWT.
 func AuthRequired(cfg *config.Config) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -50,7 +49,6 @@ func AuthRequired(cfg *config.Config) fiber.Handler {
 	}
 }
 
-// RequireRole vérifie que l'utilisateur connecté a un des rôles autorisés.
 func RequireRole(allowedRoles ...string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		role := GetRole(c)
@@ -63,13 +61,11 @@ func RequireRole(allowedRoles ...string) fiber.Handler {
 	}
 }
 
-// GetProfileID extrait l'ID du profil connecté depuis le contexte.
 func GetProfileID(c fiber.Ctx) int64 {
 	id, _ := c.Locals("profile_id").(int64)
 	return id
 }
 
-// GetRole extrait le rôle du profil connecté depuis le contexte.
 func GetRole(c fiber.Ctx) string {
 	role, _ := c.Locals("role").(string)
 	return role

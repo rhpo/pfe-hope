@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Promotion représente une promotion.
 type Promotion struct {
 	ID             int64     `json:"id"`
 	Label          string    `json:"label"`

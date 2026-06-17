@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// PfeSubject représente un sujet de PFE proposé par un enseignant ou une entreprise.
 type PfeSubject struct {
 	ID                    int64      `json:"id"`
 	Title                 string     `json:"title"`
@@ -26,10 +25,8 @@ type PfeSubject struct {
 	CreatedAt             time.Time  `json:"created_at"`
 	UpdatedAt             time.Time  `json:"updated_at"`
 
-	// Computed (not stored)
 	IsAssigned bool `json:"is_assigned"`
 
-	// Relations
 	Proposer     *Profile  `json:"proposer,omitempty"`
 	Company      *Company  `json:"company,omitempty"`
 	Validator1   *Teacher  `json:"validator1,omitempty"`

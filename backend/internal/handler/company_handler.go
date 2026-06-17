@@ -14,18 +14,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// CompanyHandler gère les endpoints entreprise.
 type CompanyHandler struct {
 	svc      *service.CompanyService
 	notifier *notify.Notifier
 }
 
-// NewCompanyHandler crée un nouveau CompanyHandler.
 func NewCompanyHandler(svc *service.CompanyService, notifier *notify.Notifier) *CompanyHandler {
 	return &CompanyHandler{svc: svc, notifier: notifier}
 }
 
-// Dashboard retourne le tableau de bord entreprise.
 func (h *CompanyHandler) Dashboard(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	data, err := h.svc.Dashboard(userID)
@@ -35,7 +32,6 @@ func (h *CompanyHandler) Dashboard(c fiber.Ctx) error {
 	return response.OK(c, data)
 }
 
-// ListSubjects liste les sujets proposés par l'entreprise.
 func (h *CompanyHandler) ListSubjects(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	subjects, err := h.svc.ListSubjects(userID)
@@ -48,7 +44,6 @@ func (h *CompanyHandler) ListSubjects(c fiber.Ctx) error {
 	return response.OK(c, subjects)
 }
 
-// CreateSubject crée un nouveau sujet proposé.
 func (h *CompanyHandler) CreateSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	var req struct {
@@ -65,14 +60,12 @@ func (h *CompanyHandler) CreateSubject(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go h.notifier.NotifyAdmins(notify.TypeValidationRequise,
 		fmt.Sprintf("Un sujet externe « %s » a été proposé par une entreprise.", req.Title))
 
 	return response.Created(c, req.PfeSubject)
 }
 
-// GetSubject retourne un sujet de l'entreprise.
 func (h *CompanyHandler) GetSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -89,7 +82,6 @@ func (h *CompanyHandler) GetSubject(c fiber.Ctx) error {
 	return response.OK(c, subject)
 }
 
-// UpdateSubject met à jour un sujet.
 func (h *CompanyHandler) UpdateSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -107,7 +99,6 @@ func (h *CompanyHandler) UpdateSubject(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Sujet mis à jour"})
 }
 
-// ListCandidats liste les candidats pour un sujet.
 func (h *CompanyHandler) ListCandidats(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -123,7 +114,6 @@ func (h *CompanyHandler) ListCandidats(c fiber.Ctx) error {
 	return response.OK(c, candidats)
 }
 
-// AcceptCandidat accepte les étudiants sélectionnés pour un sujet et crée le PFE.
 func (h *CompanyHandler) AcceptCandidat(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -153,7 +143,6 @@ func (h *CompanyHandler) AcceptCandidat(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Candidats acceptés et PFE créé"})
 }
 
-// ListSupervisedPFEs liste les PFE encadrés.
 func (h *CompanyHandler) ListSupervisedPFEs(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	assignments, err := h.svc.ListSupervisedPFEs(userID)
@@ -166,7 +155,6 @@ func (h *CompanyHandler) ListSupervisedPFEs(c fiber.Ctx) error {
 	return response.OK(c, assignments)
 }
 
-// GetSupervisedPFE retourne un PFE encadré.
 func (h *CompanyHandler) GetSupervisedPFE(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -182,7 +170,6 @@ func (h *CompanyHandler) GetSupervisedPFE(c fiber.Ctx) error {
 	return response.OK(c, assignment)
 }
 
-// AddMeeting ajoute un meeting de suivi.
 func (h *CompanyHandler) AddMeeting(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -242,7 +229,6 @@ func (h *CompanyHandler) AddMeeting(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		assignment, err := h.svc.GetSupervisedPFE(id)
 		if err != nil || assignment == nil {
@@ -262,7 +248,6 @@ func (h *CompanyHandler) AddMeeting(c fiber.Ctx) error {
 	return response.Created(c, report)
 }
 
-// ListMeetings liste les réunions de suivi d'un PFE encadré.
 func (h *CompanyHandler) ListMeetings(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -275,7 +260,6 @@ func (h *CompanyHandler) ListMeetings(c fiber.Ctx) error {
 	return response.OK(c, meetings)
 }
 
-// GetEvaluation retourne l'évaluation d'un PFE encadré.
 func (h *CompanyHandler) GetEvaluation(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -288,7 +272,6 @@ func (h *CompanyHandler) GetEvaluation(c fiber.Ctx) error {
 	return response.OK(c, eval)
 }
 
-// SubmitEvaluation soumet l'évaluation de l'encadrant.
 func (h *CompanyHandler) SubmitEvaluation(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -304,7 +287,6 @@ func (h *CompanyHandler) SubmitEvaluation(c fiber.Ctx) error {
 	if err := h.svc.SubmitEvaluation(id, userID, req.Criterion5); err != nil {
 		return response.Error(c, err)
 	}
-
 
 	go func() {
 		assignment, err := h.svc.GetSupervisedPFE(id)
@@ -326,7 +308,6 @@ func (h *CompanyHandler) SubmitEvaluation(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Évaluation soumise"})
 }
 
-// ListReports liste les signalements.
 func (h *CompanyHandler) ListReports(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	reports, err := h.svc.ListReports(userID)
@@ -339,7 +320,6 @@ func (h *CompanyHandler) ListReports(c fiber.Ctx) error {
 	return response.OK(c, reports)
 }
 
-// CreateReport crée un signalement.
 func (h *CompanyHandler) CreateReport(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	var req entity.CompanyReport
@@ -353,14 +333,12 @@ func (h *CompanyHandler) CreateReport(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go h.notifier.NotifyAdmins(notify.TypeValidationRequise,
 		"Un nouveau signalement a été soumis par une entreprise.")
 
 	return response.Created(c, req)
 }
 
-// ListNotifications liste les notifications.
 func (h *CompanyHandler) ListNotifications(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	notifications, err := h.svc.ListNotifications(userID)

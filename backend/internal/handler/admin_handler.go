@@ -16,23 +16,19 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// AdminHandler gère les endpoints admin.
 type AdminHandler struct {
 	svc      *service.AdminService
 	notifier *notify.Notifier
 }
 
-// NewAdminHandler crée un nouveau AdminHandler.
 func NewAdminHandler(svc *service.AdminService, notifier *notify.Notifier) *AdminHandler {
 	return &AdminHandler{svc: svc, notifier: notifier}
 }
 
-// parseID parses a route parameter as int64.
 func parseID(c fiber.Ctx, param string) (int64, error) {
 	return strconv.ParseInt(c.Params(param), 10, 64)
 }
 
-// Dashboard retourne les statistiques du tableau de bord.
 func (h *AdminHandler) Dashboard(c fiber.Ctx) error {
 	data, err := h.svc.Dashboard()
 	if err != nil {
@@ -41,7 +37,6 @@ func (h *AdminHandler) Dashboard(c fiber.Ctx) error {
 	return response.OK(c, data)
 }
 
-// ListUsers liste tous les utilisateurs.
 func (h *AdminHandler) ListUsers(c fiber.Ctx) error {
 	users, err := h.svc.ListUsers()
 	if err != nil {
@@ -53,7 +48,6 @@ func (h *AdminHandler) ListUsers(c fiber.Ctx) error {
 	return response.OK(c, users)
 }
 
-// GetUser retourne un utilisateur par son ID.
 func (h *AdminHandler) GetUser(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -71,7 +65,6 @@ func (h *AdminHandler) GetUser(c fiber.Ctx) error {
 	return response.OK(c, user)
 }
 
-// CreateUser crée un nouvel utilisateur. L'ID est généré côté serveur.
 func (h *AdminHandler) CreateUser(c fiber.Ctx) error {
 	var req struct {
 		Role     string `json:"role"`
@@ -98,13 +91,11 @@ func (h *AdminHandler) CreateUser(c fiber.Ctx) error {
 	return response.Created(c, profile)
 }
 
-// UpdateUser met à jour les champs communs d'un utilisateur et délègue aux sous-types.
 func (h *AdminHandler) UpdateUser(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
 		return response.ValidationError(c, "ID invalide")
 	}
-
 
 	profile, err := h.svc.GetUser(id)
 	if err != nil {
@@ -115,8 +106,8 @@ func (h *AdminHandler) UpdateUser(c fiber.Ctx) error {
 	}
 
 	var req struct {
-		FullName      string  `json:"full_name"`
-		Email         string  `json:"email"`
+		FullName string `json:"full_name"`
+		Email    string `json:"email"`
 
 		Grade        string  `json:"grade"`
 		DepartmentID *int64  `json:"department_id"`
@@ -152,7 +143,6 @@ func (h *AdminHandler) UpdateUser(c fiber.Ctx) error {
 	return response.OK(c, updated)
 }
 
-// UpdateUserAvatar télécharge et met à jour l'avatar d'un utilisateur (admin only).
 func (h *AdminHandler) UpdateUserAvatar(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -164,7 +154,6 @@ func (h *AdminHandler) UpdateUserAvatar(c fiber.Ctx) error {
 		return response.ValidationError(c, "Fichier requis (champ: file)")
 	}
 
-
 	const maxSize = 2 << 20 // 2 MB
 	if file.Size > maxSize {
 		return response.ValidationError(c, "Fichier trop volumineux (max 2MB)")
@@ -175,7 +164,6 @@ func (h *AdminHandler) UpdateUserAvatar(c fiber.Ctx) error {
 	if !allowed[ext] {
 		return response.ValidationError(c, "Type de fichier non supporté (jpg, png, webp)")
 	}
-
 
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 	dst := filepath.Join(h.svc.UploadDir(), "avatars", filename)
@@ -190,7 +178,6 @@ func (h *AdminHandler) UpdateUserAvatar(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"url": url})
 }
 
-// UserAction gère les actions sur un utilisateur : deactivate, reactivate, transfer-admin.
 func (h *AdminHandler) UserAction(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -208,7 +195,6 @@ func (h *AdminHandler) UserAction(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Action effectuée"})
 }
 
-// CreateTeacher crée un enseignant (profil + teacher record).
 func (h *AdminHandler) CreateTeacher(c fiber.Ctx) error {
 	var req struct {
 		FullName     string `json:"full_name"`
@@ -226,7 +212,6 @@ func (h *AdminHandler) CreateTeacher(c fiber.Ctx) error {
 	return response.Created(c, profile)
 }
 
-// ListDepartments liste tous les départements.
 func (h *AdminHandler) ListDepartments(c fiber.Ctx) error {
 	departments, err := h.svc.ListDepartments()
 	if err != nil {
@@ -238,7 +223,6 @@ func (h *AdminHandler) ListDepartments(c fiber.Ctx) error {
 	return response.OK(c, departments)
 }
 
-// CreateDepartment crée un département.
 func (h *AdminHandler) CreateDepartment(c fiber.Ctx) error {
 	var req entity.Department
 	if err := c.Bind().Body(&req); err != nil {
@@ -250,7 +234,6 @@ func (h *AdminHandler) CreateDepartment(c fiber.Ctx) error {
 	return response.Created(c, req)
 }
 
-// DeleteDepartment supprime un département.
 func (h *AdminHandler) DeleteDepartment(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -262,7 +245,6 @@ func (h *AdminHandler) DeleteDepartment(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Département supprimé"})
 }
 
-// CreateStudent crée un étudiant (profil + student record).
 func (h *AdminHandler) CreateStudent(c fiber.Ctx) error {
 	var req struct {
 		FullName      string `json:"full_name"`
@@ -284,7 +266,6 @@ func (h *AdminHandler) CreateStudent(c fiber.Ctx) error {
 	return response.Created(c, profile)
 }
 
-// ImportUsersCSV importe des utilisateurs en masse depuis un CSV.
 func (h *AdminHandler) ImportUsersCSV(c fiber.Ctx) error {
 	var req struct {
 		CSVData string `json:"csv_data"`
@@ -303,7 +284,6 @@ func (h *AdminHandler) ImportUsersCSV(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Import effectué"})
 }
 
-// ListCompanies liste toutes les entreprises.
 func (h *AdminHandler) ListCompanies(c fiber.Ctx) error {
 	companies, err := h.svc.ListCompanies()
 	if err != nil {
@@ -315,7 +295,6 @@ func (h *AdminHandler) ListCompanies(c fiber.Ctx) error {
 	return response.OK(c, companies)
 }
 
-// CompanyAction gère les actions sur une entreprise : validate, reject, update.
 func (h *AdminHandler) CompanyAction(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 
@@ -329,7 +308,6 @@ func (h *AdminHandler) CompanyAction(c fiber.Ctx) error {
 		return response.ValidationError(c, "Données invalides")
 	}
 
-
 	targetCompany, err := h.svc.GetCompany(id)
 	if err != nil {
 		return response.Error(c, err)
@@ -339,12 +317,10 @@ func (h *AdminHandler) CompanyAction(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	msg := "Votre compte entreprise a été approuvé."
 	if req.Action == "reject" {
 		msg = "Votre compte entreprise a été rejeté."
 	}
-
 
 	if targetCompany != nil && targetCompany.CompanyName != nil {
 		allUsersInCompany, _ := h.svc.GetCompaniesByName(*targetCompany.CompanyName)
@@ -358,7 +334,6 @@ func (h *AdminHandler) CompanyAction(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Action effectuée"})
 }
 
-// ListReports liste tous les reports.
 func (h *AdminHandler) ListReports(c fiber.Ctx) error {
 	reports, err := h.svc.ListReports()
 	if err != nil {
@@ -370,7 +345,6 @@ func (h *AdminHandler) ListReports(c fiber.Ctx) error {
 	return response.OK(c, reports)
 }
 
-// ReportAction gère les actions sur un report : resolve, reject.
 func (h *AdminHandler) ReportAction(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -388,7 +362,6 @@ func (h *AdminHandler) ReportAction(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Action effectuée"})
 }
 
-// ListSubjects liste tous les sujets PFE.
 func (h *AdminHandler) ListSubjects(c fiber.Ctx) error {
 	subjects, err := h.svc.ListSubjects()
 	if err != nil {
@@ -400,7 +373,6 @@ func (h *AdminHandler) ListSubjects(c fiber.Ctx) error {
 	return response.OK(c, subjects)
 }
 
-// GetSubject retourne un sujet par son ID.
 func (h *AdminHandler) GetSubject(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -416,7 +388,6 @@ func (h *AdminHandler) GetSubject(c fiber.Ctx) error {
 	return response.OK(c, subject)
 }
 
-// SubjectAction gère les actions admin sur un sujet.
 func (h *AdminHandler) SubjectAction(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -435,7 +406,6 @@ func (h *AdminHandler) SubjectAction(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	if subject, err := h.svc.GetSubject(id); err == nil && subject != nil {
 		var msg string
 		switch req.Action {
@@ -449,7 +419,6 @@ func (h *AdminHandler) SubjectAction(c fiber.Ctx) error {
 			msg = fmt.Sprintf("Une action a été effectuée sur votre sujet « %s ».", subject.Title)
 		}
 		go h.notifier.Send(subject.ProposerID, notify.TypeAffectation, msg)
-
 
 		if req.Validator1 != 0 {
 			if t, err := h.svc.GetTeacherByID(req.Validator1); err == nil && t != nil {
@@ -468,7 +437,6 @@ func (h *AdminHandler) SubjectAction(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Action effectuée"})
 }
 
-// AssignmentAction gère les actions sur un PFE (assign-co-supervisor, remove-co-supervisor).
 func (h *AdminHandler) AssignmentAction(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -500,7 +468,6 @@ func (h *AdminHandler) AssignmentAction(c fiber.Ctx) error {
 	}
 }
 
-// RecommendCoSupervisorHandler recommande des co-encadrants pour un PFE.
 func (h *AdminHandler) RecommendCoSupervisorHandler(c fiber.Ctx) error {
 	idStr := c.Query("assignment_id")
 	if idStr == "" {
@@ -517,7 +484,6 @@ func (h *AdminHandler) RecommendCoSupervisorHandler(c fiber.Ctx) error {
 	return response.OK(c, result)
 }
 
-// ListAssignments liste toutes les affectations PFE.
 func (h *AdminHandler) ListAssignments(c fiber.Ctx) error {
 	assignments, err := h.svc.ListAssignments()
 	if err != nil {
@@ -529,7 +495,6 @@ func (h *AdminHandler) ListAssignments(c fiber.Ctx) error {
 	return response.OK(c, assignments)
 }
 
-// GetAssignment retourne une affectation par son ID.
 func (h *AdminHandler) GetAssignment(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -545,7 +510,6 @@ func (h *AdminHandler) GetAssignment(c fiber.Ctx) error {
 	return response.OK(c, assignment)
 }
 
-// ListDefenses liste toutes les soutenances.
 func (h *AdminHandler) ListDefenses(c fiber.Ctx) error {
 	defenses, err := h.svc.ListDefenses()
 	if err != nil {
@@ -557,7 +521,6 @@ func (h *AdminHandler) ListDefenses(c fiber.Ctx) error {
 	return response.OK(c, defenses)
 }
 
-// CreateDefense crée une nouvelle soutenance.
 func (h *AdminHandler) CreateDefense(c fiber.Ctx) error {
 	var req struct {
 		AssignmentID int64  `json:"assignment_id"`
@@ -573,7 +536,6 @@ func (h *AdminHandler) CreateDefense(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, err)
 	}
-
 
 	go func() {
 		dateFormatted := req.ScheduledAt
@@ -616,7 +578,6 @@ func (h *AdminHandler) CreateDefense(c fiber.Ctx) error {
 	return response.Created(c, defense)
 }
 
-// GetDefense retourne une soutenance par son ID.
 func (h *AdminHandler) GetDefense(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -632,7 +593,6 @@ func (h *AdminHandler) GetDefense(c fiber.Ctx) error {
 	return response.OK(c, defense)
 }
 
-// RecommendJury recommande un jury pour un PFE.
 func (h *AdminHandler) RecommendJury(c fiber.Ctx) error {
 	pfeIDStr := c.Query("pfe_id")
 	if pfeIDStr == "" {
@@ -649,7 +609,6 @@ func (h *AdminHandler) RecommendJury(c fiber.Ctx) error {
 	return response.OK(c, recommendation)
 }
 
-// SubmitGrade soumet une note pour une soutenance.
 func (h *AdminHandler) SubmitGrade(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -672,7 +631,6 @@ func (h *AdminHandler) SubmitGrade(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Note soumise"})
 }
 
-// ResolveGrade résout la note finale d'une soutenance.
 func (h *AdminHandler) ResolveGrade(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -701,7 +659,6 @@ func (h *AdminHandler) ResolveGrade(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		defense, err := h.svc.GetDefense(id)
 		if err != nil || defense == nil || defense.AssignmentID == 0 {
@@ -729,7 +686,6 @@ func (h *AdminHandler) ResolveGrade(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Note résolue"})
 }
 
-// ConfirmJury confirme la participation d'un jury.
 func (h *AdminHandler) ConfirmJury(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -741,7 +697,6 @@ func (h *AdminHandler) ConfirmJury(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Jury confirmé"})
 }
 
-// DeclineJury décline la participation d'un jury.
 func (h *AdminHandler) DeclineJury(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -753,12 +708,10 @@ func (h *AdminHandler) DeclineJury(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Jury décliné"})
 }
 
-// ListDeadlines liste les délais configurés.
 func (h *AdminHandler) ListDeadlines(c fiber.Ctx) error {
 	return h.ListAcademicYears(c)
 }
 
-// UpdateDeadlines met à jour les délais.
 func (h *AdminHandler) UpdateDeadlines(c fiber.Ctx) error {
 	var req struct {
 		OpenAt  string `json:"submission_open_at"`
@@ -774,7 +727,6 @@ func (h *AdminHandler) UpdateDeadlines(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Délais mis à jour"})
 }
 
-// ListSpecialities liste toutes les spécialités.
 func (h *AdminHandler) ListSpecialities(c fiber.Ctx) error {
 	specialities, err := h.svc.ListSpecialities()
 	if err != nil {
@@ -786,7 +738,6 @@ func (h *AdminHandler) ListSpecialities(c fiber.Ctx) error {
 	return response.OK(c, specialities)
 }
 
-// CreateSpeciality crée une spécialité.
 func (h *AdminHandler) CreateSpeciality(c fiber.Ctx) error {
 	var req entity.Speciality
 	if err := c.Bind().Body(&req); err != nil {
@@ -798,7 +749,6 @@ func (h *AdminHandler) CreateSpeciality(c fiber.Ctx) error {
 	return response.Created(c, req)
 }
 
-// DeleteSpeciality supprime une spécialité.
 func (h *AdminHandler) DeleteSpeciality(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -810,7 +760,6 @@ func (h *AdminHandler) DeleteSpeciality(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Spécialité supprimée"})
 }
 
-// ListDomains liste tous les domaines.
 func (h *AdminHandler) ListDomains(c fiber.Ctx) error {
 	domains, err := h.svc.ListDomains()
 	if err != nil {
@@ -819,7 +768,6 @@ func (h *AdminHandler) ListDomains(c fiber.Ctx) error {
 	return response.OK(c, domains)
 }
 
-// CreateDomain crée un domaine.
 func (h *AdminHandler) CreateDomain(c fiber.Ctx) error {
 	var req entity.Domain
 	if err := c.Bind().Body(&req); err != nil {
@@ -831,7 +779,6 @@ func (h *AdminHandler) CreateDomain(c fiber.Ctx) error {
 	return response.Created(c, req)
 }
 
-// DeleteDomain supprime un domaine.
 func (h *AdminHandler) DeleteDomain(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -843,7 +790,6 @@ func (h *AdminHandler) DeleteDomain(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Domaine supprimé"})
 }
 
-// ListPromotions liste toutes les promotions.
 func (h *AdminHandler) ListPromotions(c fiber.Ctx) error {
 	promotions, err := h.svc.ListPromotions()
 	if err != nil {
@@ -852,7 +798,6 @@ func (h *AdminHandler) ListPromotions(c fiber.Ctx) error {
 	return response.OK(c, promotions)
 }
 
-// CreatePromotion crée une promotion.
 func (h *AdminHandler) CreatePromotion(c fiber.Ctx) error {
 	var req entity.Promotion
 	if err := c.Bind().Body(&req); err != nil {
@@ -864,7 +809,6 @@ func (h *AdminHandler) CreatePromotion(c fiber.Ctx) error {
 	return response.Created(c, req)
 }
 
-// DeletePromotion supprime une promotion.
 func (h *AdminHandler) DeletePromotion(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -876,7 +820,6 @@ func (h *AdminHandler) DeletePromotion(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Promotion supprimée"})
 }
 
-// GetStatistics retourne les statistiques globales.
 func (h *AdminHandler) Statistics(c fiber.Ctx) error {
 	stats, err := h.svc.GetStatistics()
 	if err != nil {
@@ -885,7 +828,6 @@ func (h *AdminHandler) Statistics(c fiber.Ctx) error {
 	return response.OK(c, stats)
 }
 
-// AuditLog retourne les logs d'audit.
 func (h *AdminHandler) AuditLog(c fiber.Ctx) error {
 	logs, err := h.svc.AuditLog()
 	if err != nil {
@@ -897,7 +839,6 @@ func (h *AdminHandler) AuditLog(c fiber.Ctx) error {
 	return response.OK(c, logs)
 }
 
-// ExportAffectations exporte la liste des affectations.
 func (h *AdminHandler) ExportAffectations(c fiber.Ctx) error {
 	affectations, err := h.svc.ListAssignments()
 	if err != nil {
@@ -909,7 +850,6 @@ func (h *AdminHandler) ExportAffectations(c fiber.Ctx) error {
 	return response.OK(c, affectations)
 }
 
-// ExportPlannings exporte la liste des plannings de soutenance.
 func (h *AdminHandler) ExportPlannings(c fiber.Ctx) error {
 	defenses, err := h.svc.ListDefenses()
 	if err != nil {
@@ -921,7 +861,6 @@ func (h *AdminHandler) ExportPlannings(c fiber.Ctx) error {
 	return response.OK(c, defenses)
 }
 
-// ExportStatistics exporte les statistiques.
 func (h *AdminHandler) ExportStatistics(c fiber.Ctx) error {
 	stats, err := h.svc.GetStatistics()
 	if err != nil {
@@ -930,7 +869,6 @@ func (h *AdminHandler) ExportStatistics(c fiber.Ctx) error {
 	return response.OK(c, stats)
 }
 
-// ListAcademicYears liste toutes les années académiques.
 func (h *AdminHandler) ListAcademicYears(c fiber.Ctx) error {
 	years, err := h.svc.ListAcademicYears()
 	if err != nil {
@@ -942,7 +880,6 @@ func (h *AdminHandler) ListAcademicYears(c fiber.Ctx) error {
 	return response.OK(c, years)
 }
 
-// CreateAcademicYear crée une année académique.
 func (h *AdminHandler) CreateAcademicYear(c fiber.Ctx) error {
 	var req entity.AcademicYear
 	if err := c.Bind().Body(&req); err != nil {
@@ -954,7 +891,6 @@ func (h *AdminHandler) CreateAcademicYear(c fiber.Ctx) error {
 	return response.Created(c, req)
 }
 
-// CloseAcademicYear ferme une année académique.
 func (h *AdminHandler) CloseAcademicYear(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {

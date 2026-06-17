@@ -30,14 +30,12 @@ var allowedPDFType = map[string]bool{
 	"application/pdf": true,
 }
 
-// UploadHandler gère les endpoints d'upload de fichiers.
 type UploadHandler struct {
 	profileRepo *repository.ProfileRepository
 	companyRepo *repository.CompanyRepository
 	uploadDir   string
 }
 
-// NewUploadHandler crée un UploadHandler et initialise les répertoires de stockage.
 func NewUploadHandler(profileRepo *repository.ProfileRepository, companyRepo *repository.CompanyRepository, uploadDir string) *UploadHandler {
 	for _, sub := range []string{"avatars", "logos", "memoires"} {
 		_ = os.MkdirAll(filepath.Join(uploadDir, sub), 0755)
@@ -45,7 +43,6 @@ func NewUploadHandler(profileRepo *repository.ProfileRepository, companyRepo *re
 	return &UploadHandler{profileRepo: profileRepo, companyRepo: companyRepo, uploadDir: uploadDir}
 }
 
-// extToMIME retourne le type MIME correspondant à une extension de fichier.
 func extToMIME(ext string) string {
 	switch strings.ToLower(ext) {
 	case ".jpg", ".jpeg":
@@ -60,7 +57,6 @@ func extToMIME(ext string) string {
 	return ""
 }
 
-// validateAndSave valide le fichier uploadé, le sauvegarde sur le disque et retourne son URL relative.
 func (h *UploadHandler) validateAndSave(c fiber.Ctx, subDir string, maxSize int64, allowedTypes map[string]bool) (string, error) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -82,8 +78,6 @@ func (h *UploadHandler) validateAndSave(c fiber.Ctx, subDir string, maxSize int6
 	return "/uploads/" + subDir + "/" + filename, nil
 }
 
-// UploadAvatar gère POST /api/upload/avatar et POST /api/profile/avatar.
-// Sauvegarde l'image et met à jour avatar_url dans profiles.
 func (h *UploadHandler) UploadAvatar(c fiber.Ctx) error {
 	url, err := h.validateAndSave(c, "avatars", maxAvatarSize, allowedImageTypes)
 	if err != nil {
@@ -96,8 +90,6 @@ func (h *UploadHandler) UploadAvatar(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"url": url})
 }
 
-// UploadCompanyLogo gère POST /api/upload/company-logo.
-// Sauvegarde le logo et met à jour logo_url dans companies.
 func (h *UploadHandler) UploadCompanyLogo(c fiber.Ctx) error {
 	role := middleware.GetRole(c)
 	if role != "company" && role != "admin" {
@@ -114,8 +106,6 @@ func (h *UploadHandler) UploadCompanyLogo(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"url": url})
 }
 
-// UploadMemoire gère POST /api/upload/memoire.
-// Sauvegarde le PDF et retourne l'URL. Le frontend appelle ensuite POST /student/my-pfe/memoire avec cette URL.
 func (h *UploadHandler) UploadMemoire(c fiber.Ctx) error {
 	role := middleware.GetRole(c)
 	if role != "student" && role != "admin" {

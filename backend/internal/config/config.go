@@ -7,8 +7,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config contient toutes les variables de configuration de l'application.
-// Toutes les valeurs sont chargées depuis les variables d'environnement au démarrage.
 type Config struct {
 	Port                   string
 	Env                    string
@@ -19,8 +17,6 @@ type Config struct {
 	JWTSecret              string
 }
 
-// Load charge la configuration depuis le fichier .env (si présent) et les variables d'environnement.
-// Panique si une variable obligatoire est absente.
 func Load() *Config {
 
 	_ = godotenv.Load()
@@ -45,12 +41,10 @@ func (c *Config) validate() {
 	}
 }
 
-// IsDevelopment retourne true si l'environnement est development.
 func (c *Config) IsDevelopment() bool {
 	return c.Env == "development"
 }
 
-// IsProduction retourne true si l'environnement est production.
 func (c *Config) IsProduction() bool {
 	return c.Env == "production"
 }

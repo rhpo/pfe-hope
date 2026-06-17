@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// PfeAssignment représente l'affectation d'étudiants à un sujet PFE.
 type PfeAssignment struct {
 	ID             int64      `json:"id"`
 	PfeCode        string     `json:"pfe_code"`
@@ -19,7 +18,6 @@ type PfeAssignment struct {
 	Status         string     `json:"status"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
-
 
 	Subject      *PfeSubject   `json:"subject,omitempty"`
 	AcademicYear *AcademicYear `json:"academic_year,omitempty"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// CompanyReport représente une demande de correction soumise par une entreprise.
 type CompanyReport struct {
 	ID             int64     `json:"id"`
 	CompanyID      int64     `json:"company_id"`
@@ -16,7 +15,6 @@ type CompanyReport struct {
 	ResolvedAt     NullTime  `json:"resolved_at"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
-
 
 	Company *Company `json:"company,omitempty"`
 }

@@ -12,7 +12,6 @@ import (
 	pfe_code "pfe-backend/internal/shared/pfe_code"
 )
 
-// TeacherService gère la logique métier des enseignants.
 type TeacherService struct {
 	profileRepo       *repository.ProfileRepository
 	teacherRepo       *repository.TeacherRepository
@@ -32,7 +31,6 @@ type TeacherService struct {
 	notifier          *notify.Notifier
 }
 
-// NewTeacherService crée un nouveau TeacherService.
 func NewTeacherService(
 	profileRepo *repository.ProfileRepository,
 	teacherRepo *repository.TeacherRepository,
@@ -71,7 +69,6 @@ func NewTeacherService(
 	}
 }
 
-// Dashboard retourne les statistiques du tableau de bord enseignant.
 func (s *TeacherService) Dashboard(userID int64) (map[string]any, error) {
 	subjects, _ := s.pfeSubjectRepo.FindByProposer(userID)
 	supervised, _ := s.pfeAssignmentRepo.FindBySupervisor(userID)
@@ -82,7 +79,6 @@ func (s *TeacherService) Dashboard(userID int64) (map[string]any, error) {
 	}, nil
 }
 
-// ListProposedSubjects liste les sujets proposés par l'enseignant avec relations.
 func (s *TeacherService) ListProposedSubjects(userID int64) ([]*entity.PfeSubject, error) {
 	subjects, err := s.pfeSubjectRepo.FindByProposer(userID)
 	if err != nil {
@@ -94,7 +90,6 @@ func (s *TeacherService) ListProposedSubjects(userID int64) ([]*entity.PfeSubjec
 	return subjects, nil
 }
 
-// CreateProposedSubject crée un sujet proposé par l'enseignant.
 func (s *TeacherService) CreateProposedSubject(subject *entity.PfeSubject, domainIDs []int64) error {
 	if err := s.pfeSubjectRepo.Insert(subject); err != nil {
 		return err
@@ -107,7 +102,6 @@ func (s *TeacherService) CreateProposedSubject(subject *entity.PfeSubject, domai
 	return nil
 }
 
-// GetProposedSubject retourne un sujet proposé par l'enseignant.
 func (s *TeacherService) GetProposedSubject(userID, id int64) (*entity.PfeSubject, error) {
 	subject, err := s.pfeSubjectRepo.FindByID(id)
 	if err != nil {
@@ -122,7 +116,6 @@ func (s *TeacherService) GetProposedSubject(userID, id int64) (*entity.PfeSubjec
 	return subject, nil
 }
 
-// UpdateProposedSubject met à jour un sujet proposé par l'enseignant.
 func (s *TeacherService) UpdateProposedSubject(userID int64, subject *entity.PfeSubject) error {
 	existing, err := s.pfeSubjectRepo.FindByID(subject.ID)
 	if err != nil {
@@ -146,8 +139,6 @@ func (s *TeacherService) UpdateProposedSubject(userID int64, subject *entity.Pfe
 	return s.pfeSubjectRepo.Update(existing)
 }
 
-// ResubmitSubject permet à l'auteur d'un sujet "accepté sous réserve" ou "refusé"
-// de modifier son contenu et de le resoumettre à validation (statut → en_attente).
 func (s *TeacherService) ResubmitSubject(userID, subjectID int64, title, description, groupType string, domainIDs []int64) error {
 	existing, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil {
@@ -185,7 +176,6 @@ func (s *TeacherService) ResubmitSubject(userID, subjectID int64, title, descrip
 	return nil
 }
 
-// syncDomains replaces all domains for a subject.
 func (s *TeacherService) syncDomains(subjectID int64, domainIDs []int64) error {
 
 	if _, err := s.pfeSubjectRepo.GetDomains(subjectID); err == nil {
@@ -201,7 +191,6 @@ func (s *TeacherService) syncDomains(subjectID int64, domainIDs []int64) error {
 	return nil
 }
 
-// ListCandidats liste les candidats pour un sujet avec relations.
 func (s *TeacherService) ListCandidats(subjectID int64) ([]*entity.Wish, error) {
 	wishes, err := s.wishRepo.FindBySubject(subjectID)
 	if err != nil {
@@ -213,13 +202,10 @@ func (s *TeacherService) ListCandidats(subjectID int64) ([]*entity.Wish, error) 
 	return wishes, nil
 }
 
-// AcceptCandidats accepte une liste d'étudiants pour un sujet et crée l'affectation PFE avec le bon code.
-// Supporte monôme (1 étudiant), binôme (2) et trinôme (3).
 func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*entity.PfeAssignment, error) {
 	if len(studentIDs) == 0 {
 		return nil, apperror.BadRequest("Aucun étudiant sélectionné")
 	}
-
 
 	subject, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil {
@@ -229,7 +215,6 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 		return nil, apperror.NotFound("Sujet introuvable")
 	}
 
-
 	existing, err := s.pfeAssignmentRepo.FindBySubjectID(subjectID)
 	if err != nil {
 		return nil, err
@@ -237,7 +222,6 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 	if existing != nil {
 		return nil, apperror.BadRequest("Affectation déjà effectuée pour ce sujet")
 	}
-
 
 	ay, err := s.academicYearRepo.FindActive()
 	if err != nil {
@@ -247,18 +231,15 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 		return nil, apperror.BadRequest("Aucune année académique active")
 	}
 
-
 	wishes, err := s.wishRepo.FindBySubject(subjectID)
 	if err != nil {
 		return nil, err
 	}
 
-
 	selectedSet := make(map[int64]bool, len(studentIDs))
 	for _, sID := range studentIDs {
 		selectedSet[sID] = true
 	}
-
 
 	for _, sID := range studentIDs {
 		found := false
@@ -280,7 +261,6 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 		}
 	}
 
-
 	for _, w := range wishes {
 		if !selectedSet[w.StudentID] && w.Status == "en_attente" {
 			w.Status = "refuse"
@@ -290,7 +270,6 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 		}
 	}
 
-
 	specialityCode := "GEN"
 	student1, err := s.studentRepo.FindByID(studentIDs[0])
 	if err == nil && student1 != nil && student1.SpecialityID != nil {
@@ -299,21 +278,17 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 		}
 	}
 
-
 	seq, err := s.pfeAssignmentRepo.CountBySpecialityAndYear(ay.ID, specialityCode)
 	if err != nil {
 		return nil, err
 	}
 
-
 	code := pfe_code.Generate(specialityCode, ay.Label, seq+1)
-
 
 	supervisorID, err := s.resolveTeacherID(subject.ProposerID)
 	if err != nil {
 		return nil, err
 	}
-
 
 	assignment := &entity.PfeAssignment{
 		PfeCode:        code,
@@ -339,7 +314,6 @@ func (s *TeacherService) AcceptCandidats(subjectID int64, studentIDs []int64) (*
 	return assignment, nil
 }
 
-// RejectCandidat refuse un étudiant pour un sujet.
 func (s *TeacherService) RejectCandidat(subjectID, studentID int64) error {
 	wishes, err := s.wishRepo.FindBySubject(subjectID)
 	if err != nil {
@@ -354,7 +328,6 @@ func (s *TeacherService) RejectCandidat(subjectID, studentID int64) error {
 	return apperror.NotFound("Candidature introuvable")
 }
 
-// ListSupervisedPFEs liste les PFE encadrés par l'enseignant avec relations.
 func (s *TeacherService) ListSupervisedPFEs(userID int64) ([]*entity.PfeAssignment, error) {
 	assignments, err := s.pfeAssignmentRepo.FindBySupervisor(userID)
 	if err != nil {
@@ -366,7 +339,6 @@ func (s *TeacherService) ListSupervisedPFEs(userID int64) ([]*entity.PfeAssignme
 	return assignments, nil
 }
 
-// GetSupervisedPFE retourne un PFE encadré avec relations.
 func (s *TeacherService) GetSupervisedPFE(id int64) (*entity.PfeAssignment, error) {
 	a, err := s.pfeAssignmentRepo.FindByID(id)
 	if err != nil || a == nil {
@@ -376,12 +348,10 @@ func (s *TeacherService) GetSupervisedPFE(id int64) (*entity.PfeAssignment, erro
 	return a, nil
 }
 
-// AddMeeting ajoute un meeting de suivi à un PFE.
 func (s *TeacherService) AddMeeting(report *entity.PfeProgressReport) error {
 	return s.progressRepo.Insert(report)
 }
 
-// ListMeetings liste les réunions de suivi d'un PFE.
 func (s *TeacherService) ListMeetings(assignmentID int64) ([]*entity.PfeProgressReport, error) {
 	reports, err := s.progressRepo.FindByAssignment(assignmentID)
 	if err != nil {
@@ -393,12 +363,10 @@ func (s *TeacherService) ListMeetings(assignmentID int64) ([]*entity.PfeProgress
 	return reports, nil
 }
 
-// GetEvaluation retourne l'évaluation existante d'un PFE (nil si aucune).
 func (s *TeacherService) GetEvaluation(assignmentID int64) (*entity.SupervisorEvaluation, error) {
 	return s.supEvalRepo.FindByAssignment(assignmentID)
 }
 
-// SubmitEvaluation soumet l'évaluation de l'encadrant.
 func (s *TeacherService) SubmitEvaluation(assignmentID, profileID int64, criterion5 float64) error {
 	if criterion5 < 0 || criterion5 > 4 {
 		return apperror.BadRequest("Le critère 5 doit être entre 0 et 4")
@@ -437,12 +405,11 @@ func (s *TeacherService) SubmitEvaluation(assignmentID, profileID int64, criteri
 	return s.supEvalRepo.Insert(eval)
 }
 
-// UpdateAvailability met à jour la disponibilité de l'enseignant.
 func (s *TeacherService) UpdateAvailability(userID int64, status string, unavailableUntilStr string) error {
 	validStatuses := map[string]bool{
-		"disponible":             true,
-		"indisponible":           true,
-		"indisponible_jusqu_au":  true,
+		"disponible":            true,
+		"indisponible":          true,
+		"indisponible_jusqu_au": true,
 	}
 	if !validStatuses[status] {
 		return apperror.BadRequest("Statut invalide: utilisez disponible, indisponible ou indisponible_jusqu_au")
@@ -458,7 +425,6 @@ func (s *TeacherService) UpdateAvailability(userID int64, status string, unavail
 	return s.teacherRepo.UpdateAvailability(userID, status, unavailableUntil)
 }
 
-// resolveTeacherID converts a profile ID to the corresponding teacher entity ID.
 func (s *TeacherService) resolveTeacherID(profileID int64) (int64, error) {
 	t, err := s.teacherRepo.FindByProfileID(profileID)
 	if err != nil || t == nil {
@@ -467,7 +433,6 @@ func (s *TeacherService) resolveTeacherID(profileID int64) (int64, error) {
 	return t.ID, nil
 }
 
-// ListSubjectsToValidate liste les sujets à valider par l'enseignant.
 func (s *TeacherService) ListSubjectsToValidate(userID int64) ([]*entity.PfeSubject, error) {
 	teacherID, err := s.resolveTeacherID(userID)
 	if err != nil {
@@ -483,7 +448,6 @@ func (s *TeacherService) ListSubjectsToValidate(userID int64) ([]*entity.PfeSubj
 	return subjects, nil
 }
 
-// GetSubjectToValidate retourne un sujet à valider.
 func (s *TeacherService) GetSubjectToValidate(userID, id int64) (*entity.PfeSubject, error) {
 	teacherID, err := s.resolveTeacherID(userID)
 	if err != nil {
@@ -503,7 +467,6 @@ func (s *TeacherService) GetSubjectToValidate(userID, id int64) (*entity.PfeSubj
 	return subject, nil
 }
 
-// ValidateSubject valide ou refuse un sujet.
 func (s *TeacherService) ValidateSubject(userID, id int64, decision, comment string) error {
 	validDecisions := map[string]bool{"valide": true, "accepte_sous_reserve": true, "refuse": true}
 	if !validDecisions[decision] {
@@ -524,7 +487,6 @@ func (s *TeacherService) ValidateSubject(userID, id int64, decision, comment str
 		return apperror.Forbidden("Vous n'êtes pas validateur de ce sujet")
 	}
 
-
 	var validatorField string
 	if subject.Validator1ID.Valid && subject.Validator1ID.Int64 == teacherID {
 		if subject.Validator1Decision.Valid {
@@ -540,11 +502,9 @@ func (s *TeacherService) ValidateSubject(userID, id int64, decision, comment str
 		return apperror.Forbidden("Vous n'êtes pas validateur de ce sujet")
 	}
 
-
 	if err := s.pfeSubjectRepo.UpdateValidation(id, validatorField, decision, comment); err != nil {
 		return err
 	}
-
 
 	subject, err = s.pfeSubjectRepo.FindByID(id)
 	if err != nil {
@@ -554,7 +514,6 @@ func (s *TeacherService) ValidateSubject(userID, id int64, decision, comment str
 	return s.pfeSubjectRepo.UpdateStatus(id, newStatus)
 }
 
-// ListJuryDuties liste les obligations de jury de l'enseignant avec relations.
 func (s *TeacherService) ListJuryDuties(userID int64) ([]*entity.Defense, error) {
 	defenses, err := s.defenseRepo.FindByJuryMember(userID)
 	if err != nil {
@@ -566,7 +525,6 @@ func (s *TeacherService) ListJuryDuties(userID int64) ([]*entity.Defense, error)
 	return defenses, nil
 }
 
-// GetJuryDuty retourne une obligation de jury spécifique avec relations.
 func (s *TeacherService) GetJuryDuty(id int64) (*entity.Defense, error) {
 	d, err := s.defenseRepo.FindByID(id)
 	if err != nil || d == nil {
@@ -576,18 +534,16 @@ func (s *TeacherService) GetJuryDuty(id int64) (*entity.Defense, error) {
 	return d, nil
 }
 
-// GradeContext contains all information a jury member needs for the grading UI.
 type GradeContext struct {
-	MyRole             string                       `json:"my_role"`             // "president" or "member"
-	MyGrade            *entity.JuryGrade            `json:"my_grade"`            // null if not yet submitted
-	MemberGrade        *entity.JuryGrade            `json:"member_grade"`        // member's eval (for president view)
-	SupervisorEval     *entity.SupervisorEvaluation `json:"supervisor_eval"`     // supervisor criterion5
-	MemberSubmitted    bool                         `json:"member_submitted"`    // has the member submitted?
-	SupervisorSubmitted bool                        `json:"supervisor_submitted"` // has the supervisor submitted?
-	FinalGradeSet      bool                         `json:"final_grade_set"`     // has the final grade been resolved?
+	MyRole              string                       `json:"my_role"`              // "president" or "member"
+	MyGrade             *entity.JuryGrade            `json:"my_grade"`             // null if not yet submitted
+	MemberGrade         *entity.JuryGrade            `json:"member_grade"`         // member's eval (for president view)
+	SupervisorEval      *entity.SupervisorEvaluation `json:"supervisor_eval"`      // supervisor criterion5
+	MemberSubmitted     bool                         `json:"member_submitted"`     // has the member submitted?
+	SupervisorSubmitted bool                         `json:"supervisor_submitted"` // has the supervisor submitted?
+	FinalGradeSet       bool                         `json:"final_grade_set"`      // has the final grade been resolved?
 }
 
-// GetGradeContext returns the grading context for a specific defense and caller.
 func (s *TeacherService) GetGradeContext(defenseID, callerProfileID int64) (*GradeContext, error) {
 	defense, err := s.defenseRepo.FindByID(defenseID)
 	if err != nil {
@@ -605,12 +561,10 @@ func (s *TeacherService) GetGradeContext(defenseID, callerProfileID int64) (*Gra
 		return nil, apperror.NotFound("Jury introuvable")
 	}
 
-
 	callerTeacherID, err := s.resolveTeacherID(callerProfileID)
 	if err != nil {
 		return nil, err
 	}
-
 
 	ctx := &GradeContext{}
 	if jury.PresidentID == callerTeacherID {
@@ -621,14 +575,11 @@ func (s *TeacherService) GetGradeContext(defenseID, callerProfileID int64) (*Gra
 		return nil, apperror.Forbidden("Vous ne faites pas partie de ce jury")
 	}
 
-
 	ctx.MyGrade, _ = s.juryGradeRepo.FindByDefenseAndMember(defenseID, callerTeacherID)
-
 
 	memberGrade, _ := s.juryGradeRepo.FindByDefenseAndMember(defenseID, jury.MemberID)
 	ctx.MemberGrade = memberGrade
 	ctx.MemberSubmitted = memberGrade != nil
-
 
 	if ctx.MemberGrade != nil {
 		ctx.MemberGrade.JuryMember = s.hydrateTeacher(jury.MemberID)
@@ -636,7 +587,6 @@ func (s *TeacherService) GetGradeContext(defenseID, callerProfileID int64) (*Gra
 	if ctx.MyGrade != nil {
 		ctx.MyGrade.JuryMember = s.hydrateTeacher(callerTeacherID)
 	}
-
 
 	assignment, _ := s.pfeAssignmentRepo.FindByID(defense.AssignmentID)
 	if assignment != nil {
@@ -650,7 +600,6 @@ func (s *TeacherService) GetGradeContext(defenseID, callerProfileID int64) (*Gra
 	return ctx, nil
 }
 
-// SubmitJuryGrade soumet la note d'un membre du jury (examinateur uniquement).
 func (s *TeacherService) SubmitJuryGrade(defenseID, callerProfileID int64, c1, c2, c3, c4 float64, archiveDecision string) error {
 	for _, v := range []float64{c1, c2, c3, c4} {
 		if v < 0 || v > 4 {
@@ -669,7 +618,6 @@ func (s *TeacherService) SubmitJuryGrade(defenseID, callerProfileID int64, c1, c
 	if defense == nil {
 		return apperror.NotFound("Soutenance introuvable")
 	}
-
 
 	jury, err := s.defenseJuryRepo.FindByID(defense.JuryID)
 	if err != nil {
@@ -716,8 +664,6 @@ func (s *TeacherService) SubmitJuryGrade(defenseID, callerProfileID int64, c1, c
 	return s.juryGradeRepo.Insert(grade)
 }
 
-// SubmitFinalGrade is called by the president to finalize the grade.
-// choice: "member" (use member's grades), "new" (use provided c1-c4)
 func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choice string, c1, c2, c3, c4 float64, archiveDecision string) error {
 	defense, err := s.defenseRepo.FindByID(defenseID)
 	if err != nil {
@@ -744,12 +690,10 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 		return apperror.Forbidden("Seul le président du jury peut soumettre la note finale")
 	}
 
-
 	memberGrade, _ := s.juryGradeRepo.FindByDefenseAndMember(defenseID, jury.MemberID)
 	if memberGrade == nil {
 		return apperror.BadRequest("L'examinateur n'a pas encore soumis son évaluation")
 	}
-
 
 	assignment, err := s.pfeAssignmentRepo.FindByID(defense.AssignmentID)
 	if err != nil {
@@ -762,7 +706,6 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 	if supEval == nil || !supEval.Criterion5.Valid {
 		return apperror.BadRequest("L'évaluation de l'encadrant n'a pas encore été soumise")
 	}
-
 
 	var fc1, fc2, fc3, fc4 float64
 	switch choice {
@@ -782,12 +725,10 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 		return apperror.BadRequest("Choix invalide: utilisez 'member' ou 'new'")
 	}
 
-
 	validDecisions := map[string]bool{"archivable": true, "minor_corrections": true, "major_corrections": true}
 	if archiveDecision != "" && !validDecisions[archiveDecision] {
 		return apperror.BadRequest("Décision d'archivage invalide")
 	}
-
 
 	archiveNull := entity.NullString{NullString: sql.NullString{String: archiveDecision, Valid: archiveDecision != ""}}
 	existing, _ := s.juryGradeRepo.FindByDefenseAndMember(defenseID, callerTeacherID)
@@ -811,9 +752,7 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 		_ = s.juryGradeRepo.Insert(grade)
 	}
 
-
 	totalGrade := fc1 + fc2 + fc3 + fc4 + supEval.Criterion5.Float64
-
 
 	result := "admitted"
 	if totalGrade < 10 {
@@ -823,7 +762,6 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 	if err := s.defenseRepo.UpdateResult(defenseID, result, totalGrade); err != nil {
 		return err
 	}
-
 
 	go func() {
 		subjectTitle := "votre PFE"
@@ -837,7 +775,6 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 		}
 
 		msg := fmt.Sprintf("La note finale de votre soutenance pour le sujet %s a été publiée : %.1f/20.", subjectTitle, totalGrade)
-
 
 		studentIDs := []int64{assignment.StudentID}
 		if assignment.Student2ID.Valid {
@@ -857,23 +794,19 @@ func (s *TeacherService) SubmitFinalGrade(defenseID, callerProfileID int64, choi
 	return nil
 }
 
-// GetMyGrade retourne la note déjà soumise par l'enseignant pour une soutenance, ou nil.
 func (s *TeacherService) GetMyGrade(defenseID, callerID int64) (*entity.JuryGrade, error) {
 	return s.juryGradeRepo.FindByDefenseAndMember(defenseID, callerID)
 }
 
-// ListNotifications liste les notifications de l'enseignant.
 func (s *TeacherService) ListNotifications(userID int64) ([]*entity.Notification, error) {
 	return s.notificationRepo.FindByRecipient(userID)
 }
 
-// isTeacherValidator vérifie si un enseignant est validateur d'un sujet donné.
 func isTeacherValidator(userID int64, subject *entity.PfeSubject) bool {
 	return (subject.Validator1ID.Valid && subject.Validator1ID.Int64 == userID) ||
 		(subject.Validator2ID.Valid && subject.Validator2ID.Int64 == userID)
 }
 
-// setValidatorDecision définit la décision d'un validateur.
 func setValidatorDecision(subject *entity.PfeSubject, userID int64, decision, comment string) {
 	if subject.Validator1ID.Valid && subject.Validator1ID.Int64 == userID {
 		subject.Validator1Decision = entity.NullString{NullString: sql.NullString{String: decision, Valid: true}}
@@ -883,8 +816,6 @@ func setValidatorDecision(subject *entity.PfeSubject, userID int64, decision, co
 		subject.Validator2Comment = entity.NullString{NullString: sql.NullString{String: comment, Valid: true}}
 	}
 }
-
-// ── Hydration helpers ───────────────────────────────────────────────────────
 
 func (s *TeacherService) hydrateTeacher(id int64) *entity.Teacher {
 	if id == 0 {
@@ -900,7 +831,6 @@ func (s *TeacherService) hydrateTeacher(id int64) *entity.Teacher {
 	return t
 }
 
-// GetSubjectTitle returns the title of a subject by ID (for notifications).
 func (s *TeacherService) GetSubjectTitle(subjectID int64) string {
 	sub, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil || sub == nil {
@@ -909,7 +839,6 @@ func (s *TeacherService) GetSubjectTitle(subjectID int64) string {
 	return sub.Title
 }
 
-// GetStudentProfileID retourne le profile_id d'un étudiant à partir de son entity ID.
 func (s *TeacherService) GetStudentProfileID(studentID int64) (int64, error) {
 	st, err := s.studentRepo.FindByID(studentID)
 	if err != nil {
@@ -1004,7 +933,6 @@ func (s *TeacherService) hydrateWish(w *entity.Wish) {
 	}
 }
 
-// computeSubjectStatus calcule le nouveau statut après validation.
 func computeSubjectStatus(subject *entity.PfeSubject, decision string) string {
 	bothValid := subject.Validator1Decision.Valid && subject.Validator2Decision.Valid &&
 		subject.Validator1Decision.String == "valide" && subject.Validator2Decision.String == "valide"

@@ -689,6 +689,5 @@ func TestAdminImportCSV(t *testing.T) {
 	AssertSuccess(t, result)
 }
 
-// Ensure unused import is used
 var _ = json.Marshal
 var _ = strings.NewReader

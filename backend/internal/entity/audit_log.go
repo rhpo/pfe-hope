@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// AuditLog représente une entrée dans le journal d'audit.
 type AuditLog struct {
 	ID        int64      `json:"id"`
 	ActorID   int64      `json:"actor_id"`

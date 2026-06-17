@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-// AdminService gère la logique métier de l'admin.
 type AdminService struct {
 	profileRepo       *repository.ProfileRepository
 	teacherRepo       *repository.TeacherRepository
@@ -38,7 +37,6 @@ type AdminService struct {
 	uploadDir         string
 }
 
-// NewAdminService crée un nouveau AdminService.
 func NewAdminService(
 	profileRepo *repository.ProfileRepository,
 	teacherRepo *repository.TeacherRepository,
@@ -89,12 +87,10 @@ func NewAdminService(
 	}
 }
 
-// UploadDir retourne le répertoire d'upload configuré.
 func (s *AdminService) UploadDir() string {
 	return s.uploadDir
 }
 
-// Dashboard retourne les statistiques du tableau de bord admin.
 func (s *AdminService) Dashboard() (map[string]any, error) {
 	profiles, err := s.profileRepo.FindAll()
 	if err != nil {
@@ -122,7 +118,6 @@ func (s *AdminService) Dashboard() (map[string]any, error) {
 			rejectedSubjects++
 		}
 	}
-
 
 	const timelineMonths = 10
 	monthlyStats, _ := s.pfeAssignmentRepo.MonthlyTimelineStats(timelineMonths)
@@ -168,7 +163,6 @@ func (s *AdminService) Dashboard() (map[string]any, error) {
 	}, nil
 }
 
-// ListUsers retourne tous les profils utilisateurs.
 func (s *AdminService) ListUsers() ([]*entity.Profile, error) {
 	profiles, err := s.profileRepo.FindAll()
 	if err != nil {
@@ -180,7 +174,6 @@ func (s *AdminService) ListUsers() ([]*entity.Profile, error) {
 	return profiles, nil
 }
 
-// GetUser retourne un profil par son ID avec les détails spécifiques au rôle (v2).
 func (s *AdminService) GetUser(id int64) (*entity.Profile, error) {
 	p, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -195,7 +188,6 @@ func (s *AdminService) GetUser(id int64) (*entity.Profile, error) {
 	return p, nil
 }
 
-// hydrateProfileData charge les relations spécifiques au rôle d'un profil.
 func (s *AdminService) hydrateProfileData(p *entity.Profile) {
 	if p == nil {
 		return
@@ -224,12 +216,10 @@ func (s *AdminService) hydrateProfileData(p *entity.Profile) {
 	}
 }
 
-// CreateUser crée un nouveau profil utilisateur.
 func (s *AdminService) CreateUser(profile *entity.Profile) error {
 	return s.profileRepo.Insert(profile)
 }
 
-// UpdateUser met à jour un profil utilisateur en fusionnant les champs non-vides.
 func (s *AdminService) UpdateUser(id int64, profile *entity.Profile) error {
 	existing, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -250,7 +240,6 @@ func (s *AdminService) UpdateUser(id int64, profile *entity.Profile) error {
 	return s.profileRepo.Update(existing)
 }
 
-// DeactivateUser désactive un utilisateur.
 func (s *AdminService) DeactivateUser(id int64) error {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -263,7 +252,6 @@ func (s *AdminService) DeactivateUser(id int64) error {
 	return s.profileRepo.Update(profile)
 }
 
-// ReactivateUser réactive un utilisateur.
 func (s *AdminService) ReactivateUser(id int64) error {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -276,7 +264,6 @@ func (s *AdminService) ReactivateUser(id int64) error {
 	return s.profileRepo.Update(profile)
 }
 
-// ListCompanies retourne toutes les entreprises avec profils.
 func (s *AdminService) ListCompanies() ([]*entity.Company, error) {
 	companies, err := s.companyRepo.FindAll()
 	if err != nil {
@@ -288,7 +275,6 @@ func (s *AdminService) ListCompanies() ([]*entity.Company, error) {
 	return companies, nil
 }
 
-// ValidateCompany valide une entreprise.
 func (s *AdminService) ValidateCompany(id int64) error {
 	company, err := s.companyRepo.FindByID(id)
 	if err != nil {
@@ -300,7 +286,6 @@ func (s *AdminService) ValidateCompany(id int64) error {
 	return s.companyRepo.UpdateVerification(id, true)
 }
 
-// RejectCompany rejette une entreprise.
 func (s *AdminService) RejectCompany(id int64) error {
 	company, err := s.companyRepo.FindByID(id)
 	if err != nil {
@@ -312,7 +297,6 @@ func (s *AdminService) RejectCompany(id int64) error {
 	return s.companyRepo.UpdateVerification(id, false)
 }
 
-// ListReports retourne tous les reports entreprises avec relations.
 func (s *AdminService) ListReports() ([]*entity.CompanyReport, error) {
 	reports, err := s.companyReportRepo.FindAll()
 	if err != nil {
@@ -324,7 +308,6 @@ func (s *AdminService) ListReports() ([]*entity.CompanyReport, error) {
 	return reports, nil
 }
 
-// ResolveReport résout un report.
 func (s *AdminService) ResolveReport(id int64) error {
 	report, err := s.companyReportRepo.FindByID(id)
 	if err != nil {
@@ -336,7 +319,6 @@ func (s *AdminService) ResolveReport(id int64) error {
 	return s.companyReportRepo.UpdateStatus(id, "resolu")
 }
 
-// RejectReport rejette un report.
 func (s *AdminService) RejectReport(id int64) error {
 	report, err := s.companyReportRepo.FindByID(id)
 	if err != nil {
@@ -348,7 +330,6 @@ func (s *AdminService) RejectReport(id int64) error {
 	return s.companyReportRepo.UpdateStatus(id, "rejete")
 }
 
-// ListSubjects retourne tous les sujets PFE avec relations.
 func (s *AdminService) ListSubjects() ([]*entity.PfeSubject, error) {
 	subjects, err := s.pfeSubjectRepo.FindAll()
 	if err != nil {
@@ -360,7 +341,6 @@ func (s *AdminService) ListSubjects() ([]*entity.PfeSubject, error) {
 	return subjects, nil
 }
 
-// GetSubject retourne un sujet par son ID avec relations.
 func (s *AdminService) GetSubject(id int64) (*entity.PfeSubject, error) {
 	sub, err := s.pfeSubjectRepo.FindByID(id)
 	if err != nil || sub == nil {
@@ -370,7 +350,6 @@ func (s *AdminService) GetSubject(id int64) (*entity.PfeSubject, error) {
 	return sub, nil
 }
 
-// ListAssignments retourne toutes les affectations PFE avec relations.
 func (s *AdminService) ListAssignments() ([]*entity.PfeAssignment, error) {
 	assignments, err := s.pfeAssignmentRepo.FindAll()
 	if err != nil {
@@ -382,7 +361,6 @@ func (s *AdminService) ListAssignments() ([]*entity.PfeAssignment, error) {
 	return assignments, nil
 }
 
-// GetAssignment retourne une affectation par son ID avec relations.
 func (s *AdminService) GetAssignment(id int64) (*entity.PfeAssignment, error) {
 	a, err := s.pfeAssignmentRepo.FindByID(id)
 	if err != nil || a == nil {
@@ -392,7 +370,6 @@ func (s *AdminService) GetAssignment(id int64) (*entity.PfeAssignment, error) {
 	return a, nil
 }
 
-// ListDefenses retourne toutes les soutenances avec relations.
 func (s *AdminService) ListDefenses() ([]*entity.Defense, error) {
 	defenses, err := s.defenseRepo.FindAll()
 	if err != nil {
@@ -404,7 +381,6 @@ func (s *AdminService) ListDefenses() ([]*entity.Defense, error) {
 	return defenses, nil
 }
 
-// GetDefense retourne une soutenance par son ID avec relations.
 func (s *AdminService) GetDefense(id int64) (*entity.Defense, error) {
 	d, err := s.defenseRepo.FindByID(id)
 	if err != nil || d == nil {
@@ -414,13 +390,10 @@ func (s *AdminService) GetDefense(id int64) (*entity.Defense, error) {
 	return d, nil
 }
 
-// ListAcademicYears retourne toutes les années académiques.
 func (s *AdminService) ListAcademicYears() ([]*entity.AcademicYear, error) {
 	return s.academicYearRepo.FindAll()
 }
 
-// CreateAcademicYear crée une année académique.
-// Si le statut est 'active', vérifie qu'aucune autre année n'est déjà active.
 func (s *AdminService) CreateAcademicYear(ay *entity.AcademicYear) error {
 	if ay.Status == "active" {
 		existing, err := s.academicYearRepo.FindActive()
@@ -438,7 +411,6 @@ func (s *AdminService) CreateAcademicYear(ay *entity.AcademicYear) error {
 	return s.academicYearRepo.Insert(ay)
 }
 
-// CloseAcademicYear ferme une année académique.
 func (s *AdminService) CloseAcademicYear(id int64) error {
 	ay, err := s.academicYearRepo.FindByID(id)
 	if err != nil {
@@ -450,73 +422,58 @@ func (s *AdminService) CloseAcademicYear(id int64) error {
 	return s.academicYearRepo.Close(id)
 }
 
-// ListSpecialities retourne toutes les spécialités.
 func (s *AdminService) ListSpecialities() ([]*entity.Speciality, error) {
 	return s.specialityRepo.FindAll()
 }
 
-// CreateSpeciality crée une spécialité.
 func (s *AdminService) CreateSpeciality(sp *entity.Speciality) error {
 	return s.specialityRepo.Insert(sp)
 }
 
-// DeleteSpeciality supprime une spécialité.
 func (s *AdminService) DeleteSpeciality(id int64) error {
 	return s.specialityRepo.Delete(id)
 }
 
-// ListDepartments retourne tous les départements.
 func (s *AdminService) ListDepartments() ([]*entity.Department, error) {
 	return s.departmentRepo.FindAll()
 }
 
-// CreateDepartment crée un département.
 func (s *AdminService) CreateDepartment(d *entity.Department) error {
 	return s.departmentRepo.Insert(d)
 }
 
-// DeleteDepartment supprime un département.
 func (s *AdminService) DeleteDepartment(id int64) error {
 	return s.departmentRepo.Delete(id)
 }
 
-// ListDomains retourne tous les domaines.
 func (s *AdminService) ListDomains() ([]*entity.Domain, error) {
 	return s.domainRepo.FindAll()
 }
 
-// CreateDomain crée un domaine.
 func (s *AdminService) CreateDomain(d *entity.Domain) error {
 	return s.domainRepo.Insert(d)
 }
 
-// DeleteDomain supprime un domaine.
 func (s *AdminService) DeleteDomain(id int64) error {
 	return s.domainRepo.Delete(id)
 }
 
-// ListPromotions retourne toutes les promotions.
 func (s *AdminService) ListPromotions() ([]*entity.Promotion, error) {
 	return s.promotionRepo.FindAll()
 }
 
-// CreatePromotion crée une promotion.
 func (s *AdminService) CreatePromotion(p *entity.Promotion) error {
 	return s.promotionRepo.Insert(p)
 }
 
-// DeletePromotion supprime une promotion.
 func (s *AdminService) DeletePromotion(id int64) error {
 	return s.promotionRepo.Delete(id)
 }
 
-// GetTeacherByID retourne un enseignant par son ID d'entité (utile pour résoudre teacher_id → profile_id).
 func (s *AdminService) GetTeacherByID(id int64) (*entity.Teacher, error) {
 	return s.teacherRepo.FindByID(id)
 }
 
-// GetTeacherProfileID resolves a teacher entity ID to its profile ID (for notifications).
-// Falls back to FindByProfileID in case the stored value is already a profile ID (e.g. legacy data).
 func (s *AdminService) GetTeacherProfileID(teacherID int64) int64 {
 	t, err := s.teacherRepo.FindByID(teacherID)
 	if err != nil || t == nil {
@@ -530,7 +487,6 @@ func (s *AdminService) GetTeacherProfileID(teacherID int64) int64 {
 	return t.ProfileID
 }
 
-// GetStudentProfileID resolves a student entity ID to its profile ID (for notifications).
 func (s *AdminService) GetStudentProfileID(studentID int64) int64 {
 	st, err := s.studentRepo.FindByID(studentID)
 	if err != nil || st == nil {
@@ -539,7 +495,6 @@ func (s *AdminService) GetStudentProfileID(studentID int64) int64 {
 	return st.ProfileID
 }
 
-// AssignValidators assigne les validateurs à un sujet.
 func (s *AdminService) AssignValidators(subjectID, validator1ID, validator2ID int64) error {
 	subject, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil {
@@ -551,7 +506,6 @@ func (s *AdminService) AssignValidators(subjectID, validator1ID, validator2ID in
 	return s.pfeSubjectRepo.AssignValidators(subjectID, validator1ID, validator2ID)
 }
 
-// AssignCoSupervisor assigne un co-encadrant à un sujet.
 func (s *AdminService) AssignCoSupervisor(subjectID, coSupervisorID int64) error {
 	subject, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil {
@@ -563,7 +517,6 @@ func (s *AdminService) AssignCoSupervisor(subjectID, coSupervisorID int64) error
 	return s.pfeSubjectRepo.AssignCoSupervisor(subjectID, coSupervisorID)
 }
 
-// AssignPfeCoSupervisor assigne un co-encadrant à un PFE (assignment).
 func (s *AdminService) AssignPfeCoSupervisor(assignmentID, teacherID int64) error {
 	assignment, err := s.pfeAssignmentRepo.FindByID(assignmentID)
 	if err != nil {
@@ -578,7 +531,6 @@ func (s *AdminService) AssignPfeCoSupervisor(assignmentID, teacherID int64) erro
 	return s.pfeAssignmentRepo.UpdateCoSupervisor(assignmentID, teacherID)
 }
 
-// RemovePfeCoSupervisor retire le co-encadrant d'un PFE.
 func (s *AdminService) RemovePfeCoSupervisor(assignmentID int64) error {
 	assignment, err := s.pfeAssignmentRepo.FindByID(assignmentID)
 	if err != nil {
@@ -590,8 +542,6 @@ func (s *AdminService) RemovePfeCoSupervisor(assignmentID int64) error {
 	return s.pfeAssignmentRepo.RemoveCoSupervisor(assignmentID)
 }
 
-// RecommendCoSupervisor recommande des co-encadrants pour un PFE basé sur les domaines du sujet.
-// Exclut l'encadrant principal. Trie par score de correspondance décroissant.
 func (s *AdminService) RecommendCoSupervisor(assignmentID int64) (map[string]any, error) {
 	assignment, err := s.pfeAssignmentRepo.FindByID(assignmentID)
 	if err != nil {
@@ -654,7 +604,6 @@ func (s *AdminService) RecommendCoSupervisor(assignmentID int64) (map[string]any
 		})
 	}
 
-
 	for i := 0; i < len(recommendations); i++ {
 		for j := i + 1; j < len(recommendations); j++ {
 			if recommendations[j].Score > recommendations[i].Score {
@@ -670,17 +619,14 @@ func (s *AdminService) RecommendCoSupervisor(assignmentID int64) (map[string]any
 	}, nil
 }
 
-// GetStatistics retourne les statistiques globales.
 func (s *AdminService) GetStatistics() (map[string]any, error) {
 	return s.Dashboard()
 }
 
-// AuditLog retourne tous les logs d'audit.
 func (s *AdminService) AuditLog() ([]*entity.AuditLog, error) {
 	return s.auditLogRepo.FindAll()
 }
 
-// UserAction gère les actions sur un utilisateur.
 func (s *AdminService) UserAction(id int64, action string) error {
 	switch action {
 	case "deactivate":
@@ -694,7 +640,6 @@ func (s *AdminService) UserAction(id int64, action string) error {
 	}
 }
 
-// UpdateTeacherProfile met à jour le profil d'un enseignant (profil + teacher record + domaines).
 func (s *AdminService) UpdateTeacherProfile(profileID int64, fullName, email, grade string, departmentID *int64, domainIDs []int64) error {
 	profile, err := s.profileRepo.FindByID(profileID)
 	if err != nil {
@@ -740,7 +685,6 @@ func (s *AdminService) UpdateTeacherProfile(profileID int64, fullName, email, gr
 	return nil
 }
 
-// UpdateStudentProfile met à jour le profil d'un étudiant.
 func (s *AdminService) UpdateStudentProfile(profileID int64, fullName, email, studentNumber, level string, specialityID *int64, promotionID *int64) error {
 	profile, err := s.profileRepo.FindByID(profileID)
 	if err != nil {
@@ -779,12 +723,10 @@ func (s *AdminService) UpdateStudentProfile(profileID int64, fullName, email, st
 	return nil
 }
 
-// UpdateUserAvatar met à jour l'avatar d'un utilisateur par son profileID.
 func (s *AdminService) UpdateUserAvatar(profileID int64, url string) error {
 	return s.profileRepo.UpdateAvatarURL(profileID, url)
 }
 
-// TransferAdmin transfère le rôle admin à un autre utilisateur.
 func (s *AdminService) TransferAdmin(id int64) error {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -811,7 +753,6 @@ func (s *AdminService) TransferAdmin(id int64) error {
 	return s.profileRepo.Update(profile)
 }
 
-// FindAdmin trouve le compte admin.
 func (s *AdminService) FindAdmin() (*entity.Profile, error) {
 	all, err := s.profileRepo.FindAll()
 	if err != nil {
@@ -825,7 +766,6 @@ func (s *AdminService) FindAdmin() (*entity.Profile, error) {
 	return nil, nil
 }
 
-// CreateTeacher crée un profil enseignant + son enregistrement teacher.
 func (s *AdminService) CreateTeacher(fullName, email, grade string, departmentID *int64) (*entity.Profile, error) {
 	if fullName == "" || email == "" {
 		return nil, apperror.BadRequest("full_name et email sont requis")
@@ -854,7 +794,6 @@ func (s *AdminService) CreateTeacher(fullName, email, grade string, departmentID
 	return profile, nil
 }
 
-// CreateStudent crée un profil étudiant + son enregistrement student.
 func (s *AdminService) CreateStudent(fullName, email, studentNumber string, specialityID *int64, level string, promotionID *int64) (*entity.Profile, error) {
 	if fullName == "" || email == "" || studentNumber == "" {
 		return nil, apperror.BadRequest("full_name, email et student_number sont requis")
@@ -881,8 +820,6 @@ func (s *AdminService) CreateStudent(fullName, email, studentNumber string, spec
 	return profile, nil
 }
 
-// ImportUsersCSV importe des utilisateurs depuis un CSV.
-// csvType: "teachers" ou "students". replace: si vrai, met à jour les profils existants par email.
 func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) error {
 	r := csv.NewReader(strings.NewReader(csvData))
 	records, err := r.ReadAll()
@@ -892,7 +829,6 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 	if len(records) < 2 {
 		return apperror.BadRequest("CSV vide ou sans données")
 	}
-
 
 	allDomains, _ := s.domainRepo.FindAll()
 	domainByName := make(map[string]*entity.Domain)
@@ -944,7 +880,6 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 			if existing != nil {
 				if !replace {
 
-
 					profileID = existing.ID
 				} else {
 					existing.FullName = fullName
@@ -967,7 +902,6 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 				profileID = profile.ID
 			}
 
-
 			existingTeacher, _ := s.teacherRepo.FindByProfileID(profileID)
 			if existingTeacher == nil {
 				teacher := &entity.Teacher{
@@ -986,14 +920,12 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 				_ = s.teacherRepo.Update(existingTeacher)
 			}
 
-
 			if len(row) > 4 && strings.TrimSpace(row[4]) != "" {
 				specCode := strings.ToLower(strings.TrimSpace(row[4]))
 				if sp, ok := specByCode[specCode]; ok {
 					_ = sp
 				}
 			}
-
 
 			if len(row) > 5 && strings.TrimSpace(row[5]) != "" {
 				domainNames := strings.Split(row[5], ";")
@@ -1037,7 +969,6 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 				}
 				profileID = profile.ID
 			}
-
 
 			var specialityID *int64
 			if len(row) > 3 && strings.TrimSpace(row[3]) != "" {
@@ -1083,7 +1014,6 @@ func (s *AdminService) ImportUsersCSV(csvData, csvType string, replace bool) err
 	return nil
 }
 
-// CompanyAction gère les actions sur une entreprise.
 func (s *AdminService) CompanyAction(id int64, action string) error {
 	switch action {
 	case "validate":
@@ -1095,7 +1025,6 @@ func (s *AdminService) CompanyAction(id int64, action string) error {
 	}
 }
 
-// ReportAction gère les actions sur un report.
 func (s *AdminService) ReportAction(id int64, action string) error {
 	switch action {
 	case "resolve":
@@ -1107,7 +1036,6 @@ func (s *AdminService) ReportAction(id int64, action string) error {
 	}
 }
 
-// SubjectAction gère les actions admin sur un sujet.
 func (s *AdminService) SubjectAction(id int64, action string, validatorID, validator1ID, validator2ID int64) error {
 	switch action {
 	case "assign-validators":
@@ -1133,7 +1061,6 @@ func (s *AdminService) SubjectAction(id int64, action string, validatorID, valid
 	}
 }
 
-// UnblockSubject débloque un sujet.
 func (s *AdminService) UnblockSubject(id int64) error {
 	subject, err := s.pfeSubjectRepo.FindByID(id)
 	if err != nil {
@@ -1145,7 +1072,6 @@ func (s *AdminService) UnblockSubject(id int64) error {
 	return s.pfeSubjectRepo.UpdateStatus(id, "en_attente")
 }
 
-// CreateDefense crée une nouvelle soutenance avec son jury.
 func (s *AdminService) CreateDefense(assignmentID, presidentID, memberID int64, scheduledAt, room string) (*entity.Defense, error) {
 	if assignmentID == 0 || presidentID == 0 || memberID == 0 {
 		return nil, apperror.BadRequest("assignment_id, president_id et member_id sont requis")
@@ -1162,7 +1088,6 @@ func (s *AdminService) CreateDefense(assignmentID, presidentID, memberID int64, 
 		return nil, apperror.NotFound("Affectation introuvable")
 	}
 
-
 	academicYear, err := s.academicYearRepo.FindByID(assignment.AcademicYearID)
 	if err != nil || academicYear == nil {
 		return nil, apperror.BadRequest("Année académique introuvable pour cette affectation")
@@ -1170,7 +1095,6 @@ func (s *AdminService) CreateDefense(assignmentID, presidentID, memberID int64, 
 	if academicYear.Status != "active" {
 		return nil, apperror.BadRequest("Impossible de planifier une soutenance : l'année académique est clôturée")
 	}
-
 
 	jury := &entity.DefenseJury{
 		AssignmentID: assignmentID,
@@ -1181,12 +1105,10 @@ func (s *AdminService) CreateDefense(assignmentID, presidentID, memberID int64, 
 		return nil, err
 	}
 
-
 	var scheduledAtTime entity.NullTime
 	if t, err := time.Parse(time.RFC3339, scheduledAt); err == nil {
 		scheduledAtTime = entity.NullTime{NullTime: sql.NullTime{Time: t, Valid: true}}
 	}
-
 
 	defense := &entity.Defense{
 		AssignmentID: assignmentID,
@@ -1199,23 +1121,19 @@ func (s *AdminService) CreateDefense(assignmentID, presidentID, memberID int64, 
 		return nil, err
 	}
 
-
 	_ = s.pfeAssignmentRepo.UpdateStatus(assignmentID, "soutenance_planifiee")
-
 
 	s.notifyDefenseScheduled(defense, jury)
 
 	return defense, nil
 }
 
-// notifyDefenseScheduled envoie les notifications (in-app + email) pour une soutenance planifiée.
 func (s *AdminService) notifyDefenseScheduled(defense *entity.Defense, jury *entity.DefenseJury) {
 	subject := s.hydrateSubjectFromAssignment(defense.AssignmentID)
 	title := "votre PFE"
 	if subject != nil {
 		title = fmt.Sprintf("« %s »", subject.Title)
 	}
-
 
 	assignment, _ := s.pfeAssignmentRepo.FindByID(defense.AssignmentID)
 	if assignment != nil {
@@ -1235,7 +1153,6 @@ func (s *AdminService) notifyDefenseScheduled(defense *entity.Defense, jury *ent
 		}
 	}
 
-
 	if t, _ := s.teacherRepo.FindByID(jury.PresidentID); t != nil {
 		go s.notifier.Send(t.ProfileID, notify.TypeJury,
 			fmt.Sprintf("Vous avez été désigné président du jury pour la soutenance du sujet %s.", title))
@@ -1247,7 +1164,6 @@ func (s *AdminService) notifyDefenseScheduled(defense *entity.Defense, jury *ent
 	}
 }
 
-// hydrateSubjectFromAssignment retourne le sujet associé à un assignment (pour les messages de notification).
 func (s *AdminService) hydrateSubjectFromAssignment(assignmentID int64) *entity.PfeSubject {
 	a, _ := s.pfeAssignmentRepo.FindByID(assignmentID)
 	if a == nil {
@@ -1257,10 +1173,6 @@ func (s *AdminService) hydrateSubjectFromAssignment(assignmentID int64) *entity.
 	return sub
 }
 
-// RecommendJury recommande des validateurs pour un sujet PFE en se basant
-// sur la correspondance entre les domaines du sujet et ceux des enseignants.
-// Score = nombre de domaines en commun. Les enseignants disponibles avec le
-// plus de domaines en commun sont classés en premier.
 func (s *AdminService) RecommendJury(pfeID int64) (map[string]any, error) {
 	subject, err := s.pfeSubjectRepo.FindByID(pfeID)
 	if err != nil {
@@ -1323,7 +1235,6 @@ func (s *AdminService) RecommendJury(pfeID int64) (map[string]any, error) {
 		})
 	}
 
-
 	for i := 0; i < len(recommendations); i++ {
 		for j := i + 1; j < len(recommendations); j++ {
 			if recommendations[j].Score > recommendations[i].Score {
@@ -1333,13 +1244,12 @@ func (s *AdminService) RecommendJury(pfeID int64) (map[string]any, error) {
 	}
 
 	return map[string]any{
-		"recommended":    recommendations,
-		"pfe_id":         pfeID,
+		"recommended":     recommendations,
+		"pfe_id":          pfeID,
 		"subject_domains": subjectDomains,
 	}, nil
 }
 
-// SubmitGrade soumet une note jury pour l'utilisateur authentifié.
 func (s *AdminService) SubmitGrade(defenseID, callerID int64, c1, c2, c3, c4 float64, archiveDecision string) error {
 
 	for _, v := range []float64{c1, c2, c3, c4} {
@@ -1352,7 +1262,6 @@ func (s *AdminService) SubmitGrade(defenseID, callerID int64, c1, c2, c3, c4 flo
 		return apperror.BadRequest("Décision d'archivage invalide")
 	}
 
-
 	defense, err := s.defenseRepo.FindByID(defenseID)
 	if err != nil {
 		return err
@@ -1362,7 +1271,6 @@ func (s *AdminService) SubmitGrade(defenseID, callerID int64, c1, c2, c3, c4 flo
 	}
 
 	archiveNull := entity.NullString{NullString: sql.NullString{String: archiveDecision, Valid: archiveDecision != ""}}
-
 
 	existing, err := s.juryGradeRepo.FindByDefenseAndMember(defenseID, callerID)
 	if err != nil {
@@ -1390,7 +1298,6 @@ func (s *AdminService) SubmitGrade(defenseID, callerID int64, c1, c2, c3, c4 flo
 	return s.juryGradeRepo.Insert(grade)
 }
 
-// ResolveGradeRequest contient les paramètres de résolution de notes.
 type ResolveGradeRequest struct {
 	Choice     string
 	Criterion1 float64
@@ -1400,7 +1307,6 @@ type ResolveGradeRequest struct {
 	Grades     map[string]float64
 }
 
-// ResolveGrade résout la note finale d'une soutenance.
 func (s *AdminService) ResolveGrade(defenseID int64, req ResolveGradeRequest) error {
 	defense, err := s.defenseRepo.FindByID(defenseID)
 	if err != nil {
@@ -1459,7 +1365,6 @@ func (s *AdminService) ResolveGrade(defenseID int64, req ResolveGradeRequest) er
 		c4 = req.Criterion4
 	}
 
-
 	assignment, err := s.pfeAssignmentRepo.FindByID(defense.AssignmentID)
 	if err != nil {
 		return err
@@ -1478,7 +1383,6 @@ func (s *AdminService) ResolveGrade(defenseID int64, req ResolveGradeRequest) er
 	return s.defenseRepo.UpdateResult(defenseID, "admitted", totalGrade)
 }
 
-// findJuryByIDOrDefenseID cherche un jury directement ou via une soutenance.
 func (s *AdminService) findJuryByIDOrDefenseID(id int64) (*entity.DefenseJury, error) {
 	jury, err := s.defenseJuryRepo.FindByID(id)
 	if err != nil {
@@ -1505,7 +1409,6 @@ func (s *AdminService) findJuryByIDOrDefenseID(id int64) (*entity.DefenseJury, e
 	return jury, nil
 }
 
-// ConfirmJury confirme la participation d'un jury (accepte ID jury ou ID soutenance).
 func (s *AdminService) ConfirmJury(id int64) error {
 	jury, err := s.findJuryByIDOrDefenseID(id)
 	if err != nil {
@@ -1517,7 +1420,6 @@ func (s *AdminService) ConfirmJury(id int64) error {
 	return s.defenseJuryRepo.ConfirmMember(jury.ID)
 }
 
-// DeclineJury décline la participation d'un jury (accepte ID jury ou ID soutenance).
 func (s *AdminService) DeclineJury(id int64) error {
 	jury, err := s.findJuryByIDOrDefenseID(id)
 	if err != nil {
@@ -1526,7 +1428,6 @@ func (s *AdminService) DeclineJury(id int64) error {
 	return s.defenseJuryRepo.Delete(jury.ID)
 }
 
-// UpdateDeadlines met à jour les délais de soumission.
 func (s *AdminService) UpdateDeadlines(openAt, closeAt string, maxWishes int) error {
 
 	years, err := s.academicYearRepo.FindAll()
@@ -1548,8 +1449,6 @@ func (s *AdminService) UpdateDeadlines(openAt, closeAt string, maxWishes int) er
 	}
 	return apperror.NotFound("Aucune année académique active trouvée")
 }
-
-// ── Hydration helpers ───────────────────────────────────────────────────────
 
 func (s *AdminService) hydrateTeacher(id int64) *entity.Teacher {
 	if id == 0 {
@@ -1640,12 +1539,10 @@ func (s *AdminService) hydrateDefense(d *entity.Defense) {
 	}
 }
 
-// GetCompany retourne une entreprise par son ID.
 func (s *AdminService) GetCompany(id int64) (*entity.Company, error) {
 	return s.companyRepo.FindByID(id)
 }
 
-// GetCompaniesByName retourne toutes les entreprises ayant le même nom.
 func (s *AdminService) GetCompaniesByName(name string) ([]*entity.Company, error) {
 	return s.companyRepo.FindAllByName(name)
 }

@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// NullString is an alias for sql.NullString that serializes to JSON as a string or null
 type NullString struct {
 	sql.NullString
 }
@@ -27,7 +26,6 @@ func (n *NullString) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &n.String)
 }
 
-// NullInt64 is an alias for sql.NullInt64 that serializes to JSON as an integer or null
 type NullInt64 struct {
 	sql.NullInt64
 }
@@ -48,7 +46,6 @@ func (n *NullInt64) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &n.Int64)
 }
 
-// NullFloat64 is an alias for sql.NullFloat64 that serializes to JSON as a float or null
 type NullFloat64 struct {
 	sql.NullFloat64
 }
@@ -69,7 +66,6 @@ func (n *NullFloat64) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &n.Float64)
 }
 
-// NullTime is an alias for sql.NullTime that serializes to JSON as a string or null
 type NullTime struct {
 	sql.NullTime
 }

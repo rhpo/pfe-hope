@@ -13,14 +13,11 @@ func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
-// Struct valide une structure et retourne un message d'erreur en français si invalide.
-// Retourne nil si la validation passe.
 func Struct(s any) error {
 	err := validate.Struct(s)
 	if err == nil {
 		return nil
 	}
-
 
 	validationErrors, ok := err.(validator.ValidationErrors)
 	if !ok {
@@ -35,7 +32,6 @@ func Struct(s any) error {
 	return fmt.Errorf("%s", strings.Join(msgs, "; "))
 }
 
-// translateError traduit une erreur de validation en message français.
 func translateError(e validator.FieldError) string {
 	field := e.Field()
 	switch e.Tag() {
@@ -58,7 +54,6 @@ func translateError(e validator.FieldError) string {
 	}
 }
 
-// Var valide une valeur unique avec un tag.
 func Var(field any, tag string) error {
 	return validate.Var(field, tag)
 }

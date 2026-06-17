@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Teacher représente un enseignant.
 type Teacher struct {
 	ID                 int64      `json:"id"`
 	ProfileID          int64      `json:"profile_id"`
@@ -14,7 +13,6 @@ type Teacher struct {
 	UnavailableUntil   NullTime   `json:"unavailable_until"`
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          time.Time  `json:"updated_at"`
-
 
 	Profile    *Profile    `json:"profile,omitempty"`
 	Department *Department `json:"department,omitempty"`

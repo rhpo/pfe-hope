@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-// Error représente une erreur applicative avec un code HTTP et un message en français.
 type Error struct {
 	Code    int    `json:"-"`
 	Message string `json:"error"`
@@ -19,7 +18,6 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-// Unwrap permet l'utilisation de errors.Is / errors.As.
 func (e *Error) Unwrap() error {
 	return e.Err
 }
@@ -27,8 +25,6 @@ func (e *Error) Unwrap() error {
 func (e *Error) StatusCode() int {
 	return e.Code
 }
-
-// Constructeurs pour les erreurs courantes.
 
 func BadRequest(msg string) *Error {
 	return &Error{Code: http.StatusBadRequest, Message: msg}
@@ -54,12 +50,9 @@ func Internal(msg string) *Error {
 	return &Error{Code: http.StatusInternalServerError, Message: msg}
 }
 
-// Wrap wrappe une erreur standard dans une Error applicative.
 func Wrap(code int, msg string, err error) *Error {
 	return &Error{Code: code, Message: msg, Err: err}
 }
-
-// Messages d'erreur prédéfinis.
 
 const (
 	MsgInvalidInput         = "Données invalides"

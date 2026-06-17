@@ -11,14 +11,12 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// AuthHandler gère les endpoints d'authentification.
 type AuthHandler struct {
 	authService *service.AuthService
 	cfg         *config.Config
 	notifier    *notify.Notifier
 }
 
-// NewAuthHandler crée un nouveau AuthHandler.
 func NewAuthHandler(authService *service.AuthService, cfg *config.Config, notifier *notify.Notifier) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
@@ -27,12 +25,10 @@ func NewAuthHandler(authService *service.AuthService, cfg *config.Config, notifi
 	}
 }
 
-// devLoginRequest est la structure de la requête de login.
 type devLoginRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
 
-// DevLogin gère POST /api/auth/dev-login.
 func (h *AuthHandler) DevLogin(c fiber.Ctx) error {
 	if !h.cfg.IsDevelopment() {
 		return response.NotFound(c, "Endpoint non disponible")
@@ -54,7 +50,6 @@ func (h *AuthHandler) DevLogin(c fiber.Ctx) error {
 	return response.OK(c, result)
 }
 
-// Me gère GET /api/auth/me.
 func (h *AuthHandler) Me(c fiber.Ctx) error {
 	profileID := middleware.GetProfileID(c)
 	if profileID == 0 {
@@ -69,14 +64,11 @@ func (h *AuthHandler) Me(c fiber.Ctx) error {
 	return response.OK(c, profile)
 }
 
-// Logout gère POST /api/auth/logout.
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
-
 
 	return response.OK(c, map[string]string{"message": "Déconnexion réussie"})
 }
 
-// RegisterCompany gère POST /api/auth/register-company (public).
 func (h *AuthHandler) RegisterCompany(c fiber.Ctx) error {
 	var req service.RegisterCompanyRequest
 	if err := c.Bind().JSON(&req); err != nil {
@@ -87,7 +79,6 @@ func (h *AuthHandler) RegisterCompany(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, err)
 	}
-
 
 	if result.Profile.Company != nil && !result.Profile.Company.IsVerified {
 		companyName := ""
@@ -100,7 +91,6 @@ func (h *AuthHandler) RegisterCompany(c fiber.Ctx) error {
 	return response.Created(c, result)
 }
 
-// ListVerifiedCompanies gère GET /api/auth/companies (public).
 func (h *AuthHandler) ListVerifiedCompanies(c fiber.Ctx) error {
 	companies, err := h.authService.ListVerifiedCompanies()
 	if err != nil {

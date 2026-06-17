@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Profile représente un profil utilisateur.
 type Profile struct {
 	ID        int64     `json:"id"`
 	Role      string    `json:"role"`

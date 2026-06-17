@@ -14,18 +14,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// TeacherHandler gère les endpoints enseignant.
 type TeacherHandler struct {
 	svc      *service.TeacherService
 	notifier *notify.Notifier
 }
 
-// NewTeacherHandler crée un nouveau TeacherHandler.
 func NewTeacherHandler(svc *service.TeacherService, notifier *notify.Notifier) *TeacherHandler {
 	return &TeacherHandler{svc: svc, notifier: notifier}
 }
 
-// Dashboard retourne le tableau de bord enseignant.
 func (h *TeacherHandler) Dashboard(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	data, err := h.svc.Dashboard(userID)
@@ -35,7 +32,6 @@ func (h *TeacherHandler) Dashboard(c fiber.Ctx) error {
 	return response.OK(c, data)
 }
 
-// ListProposedSubjects liste les sujets proposés par l'enseignant.
 func (h *TeacherHandler) ListProposedSubjects(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	subjects, err := h.svc.ListProposedSubjects(userID)
@@ -48,7 +44,6 @@ func (h *TeacherHandler) ListProposedSubjects(c fiber.Ctx) error {
 	return response.OK(c, subjects)
 }
 
-// CreateProposedSubject crée un nouveau sujet proposé.
 func (h *TeacherHandler) CreateProposedSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	var req struct {
@@ -76,14 +71,12 @@ func (h *TeacherHandler) CreateProposedSubject(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go h.notifier.NotifyAdmins(notify.TypeValidationRequise,
 		fmt.Sprintf("Un nouveau sujet « %s » a été proposé par un enseignant et attend votre validation.", req.Title))
 
 	return response.Created(c, subject)
 }
 
-// GetProposedSubject retourne un sujet proposé.
 func (h *TeacherHandler) GetProposedSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -100,7 +93,6 @@ func (h *TeacherHandler) GetProposedSubject(c fiber.Ctx) error {
 	return response.OK(c, subject)
 }
 
-// UpdateProposedSubject met à jour un sujet proposé.
 func (h *TeacherHandler) UpdateProposedSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -118,7 +110,6 @@ func (h *TeacherHandler) UpdateProposedSubject(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Sujet mis à jour"})
 }
 
-// ResubmitSubject permet à l'auteur de modifier et resoumettre un sujet refusé ou accepté sous réserve.
 func (h *TeacherHandler) ResubmitSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -138,7 +129,6 @@ func (h *TeacherHandler) ResubmitSubject(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	title := req.Title
 	if title == "" {
 		title = h.svc.GetSubjectTitle(id)
@@ -149,7 +139,6 @@ func (h *TeacherHandler) ResubmitSubject(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Sujet resoumis pour validation"})
 }
 
-// ListCandidats liste les candidats pour un sujet.
 func (h *TeacherHandler) ListCandidats(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -162,7 +151,6 @@ func (h *TeacherHandler) ListCandidats(c fiber.Ctx) error {
 	return response.OK(c, candidats)
 }
 
-// AcceptCandidat accepte les étudiants sélectionnés pour un sujet (binôme/trinôme supporté).
 func (h *TeacherHandler) AcceptCandidat(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -194,7 +182,6 @@ func (h *TeacherHandler) AcceptCandidat(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Candidats acceptés", "pfe_code": assignment.PfeCode})
 }
 
-// RejectCandidat refuse un étudiant pour un sujet.
 func (h *TeacherHandler) RejectCandidat(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -222,7 +209,6 @@ func (h *TeacherHandler) RejectCandidat(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Candidat refusé"})
 }
 
-// ListSubjectsToValidate liste les sujets à valider.
 func (h *TeacherHandler) ListSubjectsToValidate(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	subjects, err := h.svc.ListSubjectsToValidate(userID)
@@ -232,7 +218,6 @@ func (h *TeacherHandler) ListSubjectsToValidate(c fiber.Ctx) error {
 	return response.OK(c, subjects)
 }
 
-// GetSubjectToValidate retourne un sujet à valider.
 func (h *TeacherHandler) GetSubjectToValidate(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -249,7 +234,6 @@ func (h *TeacherHandler) GetSubjectToValidate(c fiber.Ctx) error {
 	return response.OK(c, subject)
 }
 
-// ValidateSubject valide ou refuse un sujet.
 func (h *TeacherHandler) ValidateSubject(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -273,7 +257,6 @@ func (h *TeacherHandler) ValidateSubject(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	decisionLabels := map[string]string{
 		"valide":               "validé",
 		"accepte_sous_reserve": "accepté sous réserve",
@@ -289,7 +272,6 @@ func (h *TeacherHandler) ValidateSubject(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Validation enregistrée"})
 }
 
-// ListSupervisedPFEs liste les PFE encadrés.
 func (h *TeacherHandler) ListSupervisedPFEs(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	assignments, err := h.svc.ListSupervisedPFEs(userID)
@@ -299,7 +281,6 @@ func (h *TeacherHandler) ListSupervisedPFEs(c fiber.Ctx) error {
 	return response.OK(c, assignments)
 }
 
-// GetSupervisedPFE retourne un PFE encadré.
 func (h *TeacherHandler) GetSupervisedPFE(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -315,7 +296,6 @@ func (h *TeacherHandler) GetSupervisedPFE(c fiber.Ctx) error {
 	return response.OK(c, assignment)
 }
 
-// AddMeeting ajoute un meeting de suivi à un PFE encadré.
 func (h *TeacherHandler) AddMeeting(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -341,7 +321,6 @@ func (h *TeacherHandler) AddMeeting(c fiber.Ctx) error {
 	if req.Duration == 0 {
 		return response.ValidationError(c, "La durée est requise")
 	}
-
 
 	var meetingDate time.Time
 	var parseErr error
@@ -376,7 +355,6 @@ func (h *TeacherHandler) AddMeeting(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		assignment, err := h.svc.GetSupervisedPFE(id)
 		if err != nil || assignment == nil {
@@ -396,7 +374,6 @@ func (h *TeacherHandler) AddMeeting(c fiber.Ctx) error {
 	return response.Created(c, report)
 }
 
-// ListMeetings liste les réunions de suivi d'un PFE encadré.
 func (h *TeacherHandler) ListMeetings(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -409,7 +386,6 @@ func (h *TeacherHandler) ListMeetings(c fiber.Ctx) error {
 	return response.OK(c, meetings)
 }
 
-// GetEvaluation retourne l'évaluation d'un PFE encadré.
 func (h *TeacherHandler) GetEvaluation(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -422,7 +398,6 @@ func (h *TeacherHandler) GetEvaluation(c fiber.Ctx) error {
 	return response.OK(c, eval)
 }
 
-// SubmitEvaluation soumet l'évaluation de l'encadrant.
 func (h *TeacherHandler) SubmitEvaluation(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -438,7 +413,6 @@ func (h *TeacherHandler) SubmitEvaluation(c fiber.Ctx) error {
 	if err := h.svc.SubmitEvaluation(id, userID, req.Criterion5); err != nil {
 		return response.Error(c, err)
 	}
-
 
 	go func() {
 		assignment, err := h.svc.GetSupervisedPFE(id)
@@ -460,7 +434,6 @@ func (h *TeacherHandler) SubmitEvaluation(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Évaluation soumise"})
 }
 
-// ListJuryDuties liste les obligations de jury.
 func (h *TeacherHandler) ListJuryDuties(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	duties, err := h.svc.ListJuryDuties(userID)
@@ -470,7 +443,6 @@ func (h *TeacherHandler) ListJuryDuties(c fiber.Ctx) error {
 	return response.OK(c, duties)
 }
 
-// GetJuryDuty retourne une obligation de jury.
 func (h *TeacherHandler) GetJuryDuty(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -486,7 +458,6 @@ func (h *TeacherHandler) GetJuryDuty(c fiber.Ctx) error {
 	return response.OK(c, duty)
 }
 
-// GetGradeContext returns the grading context for a defense.
 func (h *TeacherHandler) GetGradeContext(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -500,7 +471,6 @@ func (h *TeacherHandler) GetGradeContext(c fiber.Ctx) error {
 	return response.OK(c, ctx)
 }
 
-// SubmitJuryGrade soumet la note du membre (examinateur) pour une soutenance.
 func (h *TeacherHandler) SubmitJuryGrade(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -521,7 +491,6 @@ func (h *TeacherHandler) SubmitJuryGrade(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		duty, err := h.svc.GetJuryDuty(id)
 		if err != nil || duty == nil {
@@ -538,7 +507,6 @@ func (h *TeacherHandler) SubmitJuryGrade(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Évaluation soumise"})
 }
 
-// SubmitFinalGrade soumet la note finale par le président du jury.
 func (h *TeacherHandler) SubmitFinalGrade(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -560,7 +528,6 @@ func (h *TeacherHandler) SubmitFinalGrade(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		duty, err := h.svc.GetJuryDuty(id)
 		if err != nil || duty == nil {
@@ -577,7 +544,6 @@ func (h *TeacherHandler) SubmitFinalGrade(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Note finale soumise"})
 }
 
-// UpdateAvailability met à jour la disponibilité de l'enseignant.
 func (h *TeacherHandler) UpdateAvailability(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	var req struct {
@@ -593,7 +559,6 @@ func (h *TeacherHandler) UpdateAvailability(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Disponibilité mise à jour"})
 }
 
-// ListNotifications liste les notifications de l'enseignant.
 func (h *TeacherHandler) ListNotifications(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	notifications, err := h.svc.ListNotifications(userID)

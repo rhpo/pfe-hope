@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Company représente une entreprise.
 type Company struct {
 	ID           int64     `json:"id"`
 	ProfileID    int64     `json:"profile_id"`
@@ -16,7 +15,6 @@ type Company struct {
 	IsVerified   bool      `json:"is_verified"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
-
 
 	Profile *Profile `json:"profile,omitempty"`
 }

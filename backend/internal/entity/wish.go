@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Wish représente un vœu d'étudiant pour un sujet PFE.
 type Wish struct {
 	ID             int64     `json:"id"`
 	StudentID      int64     `json:"student_id"`
@@ -13,7 +12,6 @@ type Wish struct {
 	Status         string    `json:"status"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
-
 
 	Student      *Student      `json:"student,omitempty"`
 	Subject      *PfeSubject   `json:"subject,omitempty"`

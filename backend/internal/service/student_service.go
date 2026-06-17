@@ -6,7 +6,6 @@ import (
 	"pfe-backend/internal/shared/apperror"
 )
 
-// StudentService gère la logique métier des étudiants.
 type StudentService struct {
 	profileRepo       *repository.ProfileRepository
 	studentRepo       *repository.StudentRepository
@@ -24,7 +23,6 @@ type StudentService struct {
 	academicYearRepo  *repository.AcademicYearRepository
 }
 
-// NewStudentService crée un nouveau StudentService.
 func NewStudentService(
 	profileRepo *repository.ProfileRepository,
 	studentRepo *repository.StudentRepository,
@@ -59,7 +57,6 @@ func NewStudentService(
 	}
 }
 
-// getActiveAcademicYear récupère l'année académique active.
 func (s *StudentService) getActiveAcademicYear() (int64, error) {
 	year, err := s.academicYearRepo.FindActive()
 	if err != nil {
@@ -71,7 +68,6 @@ func (s *StudentService) getActiveAcademicYear() (int64, error) {
 	return year.ID, nil
 }
 
-// getStudent récupère l'étudiant à partir de son profileID.
 func (s *StudentService) getStudent(profileID int64) (*entity.Student, error) {
 	st, err := s.studentRepo.FindByProfileID(profileID)
 	if err != nil {
@@ -83,7 +79,6 @@ func (s *StudentService) getStudent(profileID int64) (*entity.Student, error) {
 	return st, nil
 }
 
-// GetSettings retourne les paramètres publics de l'année active (max_wishes, fenêtre de soumission).
 func (s *StudentService) GetSettings() (map[string]any, error) {
 	year, err := s.academicYearRepo.FindActive()
 	if err != nil || year == nil {
@@ -101,7 +96,6 @@ func (s *StudentService) GetSettings() (map[string]any, error) {
 	}, nil
 }
 
-// Dashboard retourne les statistiques du tableau de bord étudiant.
 func (s *StudentService) Dashboard(userID int64) (map[string]any, error) {
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -130,7 +124,6 @@ func (s *StudentService) Dashboard(userID int64) (map[string]any, error) {
 	return result, nil
 }
 
-// ListCatalogue liste tous les sujets disponibles (validés) pour l'étudiant.
 func (s *StudentService) ListCatalogue() ([]*entity.PfeSubject, error) {
 	subjects, err := s.pfeSubjectRepo.FindByStatus("valide")
 	if err != nil {
@@ -144,7 +137,6 @@ func (s *StudentService) ListCatalogue() ([]*entity.PfeSubject, error) {
 	return subjects, nil
 }
 
-// GetCatalogueSubject retourne un sujet du catalogue.
 func (s *StudentService) GetCatalogueSubject(id int64) (*entity.PfeSubject, error) {
 	sub, err := s.pfeSubjectRepo.FindByID(id)
 	if err != nil || sub == nil {
@@ -156,7 +148,6 @@ func (s *StudentService) GetCatalogueSubject(id int64) (*entity.PfeSubject, erro
 	return sub, nil
 }
 
-// ListWishes liste les voeux de l'étudiant avec relations.
 func (s *StudentService) ListWishes(userID int64) ([]*entity.Wish, error) {
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -181,7 +172,6 @@ func (s *StudentService) ListWishes(userID int64) ([]*entity.Wish, error) {
 	return wishes, nil
 }
 
-// CreateWish crée un voeu pour l'étudiant.
 func (s *StudentService) CreateWish(userID, subjectID int64) error {
 
 	subject, err := s.pfeSubjectRepo.FindByID(subjectID)
@@ -194,7 +184,6 @@ func (s *StudentService) CreateWish(userID, subjectID int64) error {
 	if subject.Status != "valide" {
 		return apperror.BadRequest("Ce sujet n'est pas disponible")
 	}
-
 
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -226,7 +215,6 @@ func (s *StudentService) CreateWish(userID, subjectID int64) error {
 	return s.wishRepo.Insert(wish)
 }
 
-// DeleteWish supprime un voeu.
 func (s *StudentService) DeleteWish(userID, wishID int64) error {
 	wish, err := s.wishRepo.FindByID(wishID)
 	if err != nil {
@@ -245,7 +233,6 @@ func (s *StudentService) DeleteWish(userID, wishID int64) error {
 	return s.wishRepo.Delete(wishID)
 }
 
-// GetMyPFE retourne le PFE de l'étudiant avec relations.
 func (s *StudentService) GetMyPFE(userID int64) (*entity.PfeAssignment, error) {
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -263,12 +250,10 @@ func (s *StudentService) GetMyPFE(userID int64) (*entity.PfeAssignment, error) {
 	return a, nil
 }
 
-// ListMyMeetings liste les meetings de suivi du PFE de l'étudiant.
 func (s *StudentService) ListMyMeetings(assignmentID int64) ([]*entity.PfeProgressReport, error) {
 	return s.progressRepo.FindByAssignment(assignmentID)
 }
 
-// AddMyMeeting ajoute un meeting de suivi pour le PFE de l'étudiant.
 func (s *StudentService) AddMyMeeting(userID int64, report *entity.PfeProgressReport) error {
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -292,7 +277,6 @@ func (s *StudentService) AddMyMeeting(userID int64, report *entity.PfeProgressRe
 	return s.progressRepo.Insert(report)
 }
 
-// UpdateMyMeeting met à jour le statut d'un meeting de suivi.
 func (s *StudentService) UpdateMyMeeting(userID, meetingID int64, status string) error {
 	validStatuses := map[string]bool{"a_faire": true, "en_cours": true, "termine": true}
 	if !validStatuses[status] {
@@ -324,12 +308,10 @@ func (s *StudentService) UpdateMyMeeting(userID, meetingID int64, status string)
 	return s.progressRepo.Update(report)
 }
 
-// SubmitMemoire soumet le mémoire PDF.
 func (s *StudentService) SubmitMemoire(assignmentID int64, memoireURL string) error {
 	return s.pfeAssignmentRepo.UpdateMemoire(assignmentID, memoireURL)
 }
 
-// GetSoutenance retourne les informations de soutenance de l'étudiant.
 func (s *StudentService) GetSoutenance(userID int64) (map[string]any, error) {
 	academicYearID, err := s.getActiveAcademicYear()
 	if err != nil {
@@ -355,7 +337,6 @@ func (s *StudentService) GetSoutenance(userID int64) (map[string]any, error) {
 		return map[string]any{"has_soutenance": false}, nil
 	}
 
-
 	var jury *entity.DefenseJury
 	if defense.JuryID != 0 {
 		jury, _ = s.defenseJuryRepo.FindByID(defense.JuryID)
@@ -371,23 +352,20 @@ func (s *StudentService) GetSoutenance(userID int64) (map[string]any, error) {
 		}
 	}
 
-
 	supEval, _ := s.supEvalRepo.FindByAssignment(assignment.ID)
 
 	return map[string]any{
-		"has_soutenance":      true,
-		"defense":             defense,
-		"jury":                jury,
-		"supervisor_note":     supEval,
+		"has_soutenance":  true,
+		"defense":         defense,
+		"jury":            jury,
+		"supervisor_note": supEval,
 	}, nil
 }
 
-// ListNotifications liste les notifications de l'étudiant.
 func (s *StudentService) ListNotifications(userID int64) ([]*entity.Notification, error) {
 	return s.notificationRepo.FindByRecipient(userID)
 }
 
-// GetTeacherProfileID resolves a teacher entity ID to a profile ID (for notifications).
 func (s *StudentService) GetTeacherProfileID(teacherID int64) (int64, error) {
 	t, err := s.teacherRepo.FindByID(teacherID)
 	if err != nil {
@@ -399,7 +377,6 @@ func (s *StudentService) GetTeacherProfileID(teacherID int64) (int64, error) {
 	return t.ProfileID, nil
 }
 
-// GetSubjectProposerID returns the proposer profile ID for a subject (for notifications).
 func (s *StudentService) GetSubjectProposerID(subjectID int64) (int64, string) {
 	sub, err := s.pfeSubjectRepo.FindByID(subjectID)
 	if err != nil || sub == nil {
@@ -407,8 +384,6 @@ func (s *StudentService) GetSubjectProposerID(subjectID int64) (int64, string) {
 	}
 	return sub.ProposerID, sub.ProposerRole
 }
-
-// ── Hydration helpers ───────────────────────────────────────────────────────
 
 func (s *StudentService) hydrateTeacher(id int64) *entity.Teacher {
 	if id == 0 {

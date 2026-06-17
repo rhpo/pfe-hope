@@ -14,18 +14,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// StudentHandler gère les endpoints étudiant.
 type StudentHandler struct {
 	svc      *service.StudentService
 	notifier *notify.Notifier
 }
 
-// NewStudentHandler crée un nouveau StudentHandler.
 func NewStudentHandler(svc *service.StudentService, notifier *notify.Notifier) *StudentHandler {
 	return &StudentHandler{svc: svc, notifier: notifier}
 }
 
-// Dashboard retourne le tableau de bord étudiant.
 func (h *StudentHandler) Dashboard(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	data, err := h.svc.Dashboard(userID)
@@ -35,7 +32,6 @@ func (h *StudentHandler) Dashboard(c fiber.Ctx) error {
 	return response.OK(c, data)
 }
 
-// ListCatalogue liste tous les sujets disponibles.
 func (h *StudentHandler) ListCatalogue(c fiber.Ctx) error {
 	subjects, err := h.svc.ListCatalogue()
 	if err != nil {
@@ -47,7 +43,6 @@ func (h *StudentHandler) ListCatalogue(c fiber.Ctx) error {
 	return response.OK(c, subjects)
 }
 
-// GetCatalogueSubject retourne un sujet du catalogue.
 func (h *StudentHandler) GetCatalogueSubject(c fiber.Ctx) error {
 	id, err := parseID(c, "id")
 	if err != nil {
@@ -63,7 +58,6 @@ func (h *StudentHandler) GetCatalogueSubject(c fiber.Ctx) error {
 	return response.OK(c, subject)
 }
 
-// ListWishes liste les voeux de l'étudiant.
 func (h *StudentHandler) ListWishes(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	wishes, err := h.svc.ListWishes(userID)
@@ -76,7 +70,6 @@ func (h *StudentHandler) ListWishes(c fiber.Ctx) error {
 	return response.OK(c, wishes)
 }
 
-// CreateWish crée un voeu pour l'étudiant.
 func (h *StudentHandler) CreateWish(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	var req struct {
@@ -92,7 +85,6 @@ func (h *StudentHandler) CreateWish(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		subjectTitle := fmt.Sprintf("sujet #%d", req.SubjectID)
 		if sub, err := h.svc.GetCatalogueSubject(req.SubjectID); err == nil && sub != nil {
@@ -100,7 +92,6 @@ func (h *StudentHandler) CreateWish(c fiber.Ctx) error {
 		}
 		h.notifier.NotifyAdmins(notify.TypeAffectation,
 			fmt.Sprintf("Un étudiant a postulé au sujet « %s ».", subjectTitle))
-
 
 		proposerID, _ := h.svc.GetSubjectProposerID(req.SubjectID)
 		if proposerID != 0 {
@@ -112,7 +103,6 @@ func (h *StudentHandler) CreateWish(c fiber.Ctx) error {
 	return response.Created(c, map[string]string{"message": "Voeu créé"})
 }
 
-// DeleteWish supprime un voeu.
 func (h *StudentHandler) DeleteWish(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -125,7 +115,6 @@ func (h *StudentHandler) DeleteWish(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Voeu supprimé"})
 }
 
-// GetMyPFE retourne le PFE de l'étudiant.
 func (h *StudentHandler) GetMyPFE(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	assignment, err := h.svc.GetMyPFE(userID)
@@ -138,7 +127,6 @@ func (h *StudentHandler) GetMyPFE(c fiber.Ctx) error {
 	return response.OK(c, assignment)
 }
 
-// ListMyMeetings liste les meetings de suivi.
 func (h *StudentHandler) ListMyMeetings(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	assignment, err := h.svc.GetMyPFE(userID)
@@ -158,7 +146,6 @@ func (h *StudentHandler) ListMyMeetings(c fiber.Ctx) error {
 	return response.OK(c, meetings)
 }
 
-// AddMyMeeting ajoute un meeting de suivi.
 func (h *StudentHandler) AddMyMeeting(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 
@@ -182,7 +169,6 @@ func (h *StudentHandler) AddMyMeeting(c fiber.Ctx) error {
 	if req.Duration == 0 {
 		return response.ValidationError(c, "La durée est requise")
 	}
-
 
 	var meetingDate time.Time
 	var parseErr error
@@ -216,7 +202,6 @@ func (h *StudentHandler) AddMyMeeting(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		assignment, err := h.svc.GetMyPFE(userID)
 		if err != nil || assignment == nil {
@@ -236,7 +221,6 @@ func (h *StudentHandler) AddMyMeeting(c fiber.Ctx) error {
 	return response.Created(c, report)
 }
 
-// UpdateMyMeeting met à jour le statut d'une entrée de suivi.
 func (h *StudentHandler) UpdateMyMeeting(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	id, err := parseID(c, "id")
@@ -258,7 +242,6 @@ func (h *StudentHandler) UpdateMyMeeting(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Statut mis à jour"})
 }
 
-// SubmitMemoire soumet le mémoire PDF.
 func (h *StudentHandler) SubmitMemoire(c fiber.Ctx) error {
 	var req struct {
 		MemoireURL string `json:"memoire_url"`
@@ -282,7 +265,6 @@ func (h *StudentHandler) SubmitMemoire(c fiber.Ctx) error {
 		return response.Error(c, err)
 	}
 
-
 	go func() {
 		subjectTitle := "un PFE"
 		if assignment.Subject != nil && assignment.Subject.Title != "" {
@@ -299,7 +281,6 @@ func (h *StudentHandler) SubmitMemoire(c fiber.Ctx) error {
 	return response.OK(c, map[string]string{"message": "Mémoire soumis"})
 }
 
-// GetSoutenance retourne les infos de soutenance.
 func (h *StudentHandler) GetSoutenance(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	data, err := h.svc.GetSoutenance(userID)
@@ -309,7 +290,6 @@ func (h *StudentHandler) GetSoutenance(c fiber.Ctx) error {
 	return response.OK(c, data)
 }
 
-// GetSettings retourne les paramètres publics de l'année académique active.
 func (h *StudentHandler) GetSettings(c fiber.Ctx) error {
 	settings, err := h.svc.GetSettings()
 	if err != nil {
@@ -318,7 +298,6 @@ func (h *StudentHandler) GetSettings(c fiber.Ctx) error {
 	return response.OK(c, settings)
 }
 
-// ListNotifications liste les notifications de l'étudiant.
 func (h *StudentHandler) ListNotifications(c fiber.Ctx) error {
 	userID := middleware.GetProfileID(c)
 	notifications, err := h.svc.ListNotifications(userID)

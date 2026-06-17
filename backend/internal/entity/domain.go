@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Domain représente un domaine de recherche.
 type Domain struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`

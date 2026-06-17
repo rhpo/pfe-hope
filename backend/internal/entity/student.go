@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Student représente un étudiant.
 type Student struct {
 	ID            int64     `json:"id"`
 	ProfileID     int64     `json:"profile_id"`
@@ -12,7 +11,6 @@ type Student struct {
 	PromotionID   *int64    `json:"promotion_id"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
-
 
 	Profile    *Profile    `json:"profile,omitempty"`
 	Speciality *Speciality `json:"speciality,omitempty"`

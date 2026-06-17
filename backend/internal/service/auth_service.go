@@ -11,7 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// AuthService gère la logique d'authentification.
 type AuthService struct {
 	profileRepo *repository.ProfileRepository
 	teacherRepo *repository.TeacherRepository
@@ -20,7 +19,6 @@ type AuthService struct {
 	cfg         *config.Config
 }
 
-// NewAuthService crée un nouveau AuthService.
 func NewAuthService(profileRepo *repository.ProfileRepository, teacherRepo *repository.TeacherRepository, studentRepo *repository.StudentRepository, companyRepo *repository.CompanyRepository, cfg *config.Config) *AuthService {
 	return &AuthService{
 		profileRepo: profileRepo,
@@ -31,13 +29,11 @@ func NewAuthService(profileRepo *repository.ProfileRepository, teacherRepo *repo
 	}
 }
 
-// DevLoginResponse est la réponse du login de développement.
 type DevLoginResponse struct {
 	Token   string          `json:"token"`
 	Profile *entity.Profile `json:"profile"`
 }
 
-// DevLogin connecte un utilisateur par email en mode développement.
 func (s *AuthService) DevLogin(email string) (*DevLoginResponse, error) {
 	if !s.cfg.IsDevelopment() {
 		return nil, apperror.NotFound("Endpoint non disponible")
@@ -76,7 +72,6 @@ func (s *AuthService) DevLogin(email string) (*DevLoginResponse, error) {
 	}, nil
 }
 
-// GetProfile récupère un profil par son ID.
 func (s *AuthService) GetProfile(id int64) (*entity.Profile, error) {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
@@ -100,17 +95,13 @@ func (s *AuthService) GetProfile(id int64) (*entity.Profile, error) {
 	return profile, nil
 }
 
-// RegisterCompanyRequest est la requête d'inscription d'un employé d'entreprise.
 type RegisterCompanyRequest struct {
-
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
 	Position string `json:"position"`
 	Phone    string `json:"phone"`
 
-
 	CompanyID int64 `json:"company_id"`
-
 
 	CompanyName  string `json:"company_name"`
 	Sector       string `json:"sector"`
@@ -119,9 +110,6 @@ type RegisterCompanyRequest struct {
 	ContactPhone string `json:"contact_phone"`
 }
 
-// RegisterCompanyEmployee crée un profil entreprise + company record.
-// Si company_id est fourni, l'employé rejoint une entreprise existante (vérifiée).
-// Sinon, une nouvelle entreprise est créée (non vérifiée, en attente de validation admin).
 func (s *AuthService) RegisterCompanyEmployee(req *RegisterCompanyRequest) (*DevLoginResponse, error) {
 
 	existing, _ := s.profileRepo.FindByEmail(req.Email)
@@ -129,11 +117,9 @@ func (s *AuthService) RegisterCompanyEmployee(req *RegisterCompanyRequest) (*Dev
 		return nil, apperror.Conflict("Un compte existe déjà avec cet email")
 	}
 
-
 	if req.FullName == "" || req.Email == "" {
 		return nil, apperror.BadRequest("Le nom complet et l'email sont obligatoires")
 	}
-
 
 	profile := &entity.Profile{
 		Role:     "company",
@@ -211,12 +197,10 @@ func (s *AuthService) RegisterCompanyEmployee(req *RegisterCompanyRequest) (*Dev
 	}, nil
 }
 
-// ListVerifiedCompanies retourne les entreprises vérifiées (pour l'autocomplete d'inscription).
 func (s *AuthService) ListVerifiedCompanies() ([]*entity.Company, error) {
 	return s.companyRepo.FindAllVerified()
 }
 
-// generateToken génère un token JWT pour un profil.
 func (s *AuthService) generateToken(profile *entity.Profile) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":   profile.ID,

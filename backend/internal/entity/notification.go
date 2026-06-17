@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Notification représente une notification in-app.
 type Notification struct {
 	ID          int64     `json:"id"`
 	RecipientID int64     `json:"recipient_id"`

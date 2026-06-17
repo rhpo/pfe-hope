@@ -75,8 +75,6 @@ func (r *PfeSubjectRepository) FindByStatus(status string) ([]*entity.PfeSubject
 
 func (r *PfeSubjectRepository) FindPendingValidation(validatorID int64) ([]*entity.PfeSubject, error) {
 
-
-
 	query := `SELECT id, title, description, group_type, proposer_id, proposer_role, company_id, academic_year_id,
 		validator1_id, validator2_id, validator1_decision, validator2_decision,
 		validator1_comment, validator2_comment, status, co_supervisor_id, pre_assigned_student_ids, created_at, updated_at
@@ -159,8 +157,6 @@ func (r *PfeSubjectRepository) Update(s *entity.PfeSubject) error {
 	return err
 }
 
-// Resubmit met à jour le contenu d'un sujet et le remet en attente de validation.
-// Efface toutes les décisions et affectations de validateurs précédentes.
 func (r *PfeSubjectRepository) Resubmit(id int64, title, description, groupType string) error {
 	query := `UPDATE pfe_subjects SET
 		title = ?, description = ?, group_type = ?,

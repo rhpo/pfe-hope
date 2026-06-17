@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Defense représente une soutenance.
 type Defense struct {
 	ID              int64       `json:"id"`
 	AssignmentID    int64       `json:"assignment_id"`
@@ -17,7 +16,6 @@ type Defense struct {
 	FinalGrade      NullFloat64 `json:"final_grade"`
 	CreatedAt       time.Time   `json:"created_at"`
 	UpdatedAt       time.Time   `json:"updated_at"`
-
 
 	Assignment *PfeAssignment `json:"assignment,omitempty"`
 	Jury       *DefenseJury   `json:"jury,omitempty"`

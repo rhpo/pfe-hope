@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// DefenseJury représente le jury d'une soutenance (président + membre).
 type DefenseJury struct {
 	ID                    int64     `json:"id"`
 	AssignmentID          int64     `json:"assignment_id"`
@@ -16,7 +15,6 @@ type DefenseJury struct {
 	MemberWantsPrinted    bool      `json:"member_wants_printed"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`
-
 
 	Assignment *PfeAssignment `json:"assignment,omitempty"`
 	President  *Teacher       `json:"president,omitempty"`

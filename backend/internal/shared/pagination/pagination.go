@@ -12,15 +12,12 @@ const (
 	MaxPerPage     = 100
 )
 
-// Params contient les paramètres de pagination extraits de la requête.
 type Params struct {
 	Page    int
 	PerPage int
 	Offset  int
 }
 
-// Extract extrait les paramètres de pagination depuis les query params Fiber.
-// Utilise les valeurs par défaut si absentes ou invalides.
 func Extract(c fiber.Ctx) Params {
 	page := parseIntOrDefault(c.Query("page"), DefaultPage)
 	perPage := parseIntOrDefault(c.Query("per_page"), DefaultPerPage)

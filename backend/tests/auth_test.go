@@ -125,7 +125,6 @@ func TestAuth(t *testing.T) {
 	})
 }
 
-// newHTTPRequest crée une requête HTTP standard pour les tests avec Fiber.
 func newHTTPRequest(method, url string, body any, headers map[string]string) *http.Request {
 	var reqBody []byte
 	if body != nil {
@@ -145,7 +144,6 @@ func newHTTPRequest(method, url string, body any, headers map[string]string) *ht
 	return req
 }
 
-// TestAuthNoAuth vérifie l'accès sans authentification.
 func TestAuthNoAuth(t *testing.T) {
 	h := NewTestHelper()
 	defer h.Close()

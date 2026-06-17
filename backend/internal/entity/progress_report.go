@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// PfeProgressReport représente un compte-rendu de réunion pour un PFE.
+
 type PfeProgressReport struct {
 	ID           int64      `json:"id"`
 	AssignmentID int64      `json:"assignment_id"`

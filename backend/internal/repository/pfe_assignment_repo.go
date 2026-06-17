@@ -61,17 +61,12 @@ func (r *PfeAssignmentRepository) FindBySupervisor(supervisorID int64) ([]*entit
 	return r.scanAssignments(rows)
 }
 
-// MonthlyTimelineStat holds one month's cumulative assignment counts.
 type MonthlyTimelineStat struct {
 	Label         string
 	WithSubject   int
 	MemoireSubmit int
 }
 
-// MonthlyTimelineStats returns, for each of the last `months` calendar months,
-// the cumulative count of assignments created by month-end and the count of
-// those that already have a mémoire submitted (memoire_url IS NOT NULL).
-// Results are ordered oldest-month first.
 func (r *PfeAssignmentRepository) MonthlyTimelineStats(months int) ([]MonthlyTimelineStat, error) {
 	results := make([]MonthlyTimelineStat, months)
 	now := time.Now()
@@ -101,7 +96,6 @@ func (r *PfeAssignmentRepository) MonthlyTimelineStats(months int) ([]MonthlyTim
 	return results, nil
 }
 
-// FindBySubjectID retourne l'affectation existante pour un sujet donné (nil si aucune).
 func (r *PfeAssignmentRepository) FindBySubjectID(subjectID int64) (*entity.PfeAssignment, error) {
 	query := `SELECT id, pfe_code, subject_id, academic_year_id, student_id, student2_id, student3_id,
 		supervisor_id, co_supervisor_id, memoire_url, status, created_at, updated_at
@@ -194,8 +188,6 @@ func (r *PfeAssignmentRepository) UpdateMemoire(id int64, memoireURL string) err
 	return err
 }
 
-// CountBySpecialityAndYear compte les affectations pour une spécialité et une année académique données.
-// Utilisé pour générer le numéro de séquence du code PFE (PFE-SPEC-YEAR-NNN).
 func (r *PfeAssignmentRepository) CountBySpecialityAndYear(academicYearID int64, specialityCode string) (int, error) {
 	var count int
 	err := r.db.QueryRow(`

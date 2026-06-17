@@ -27,7 +27,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// TestHelper fournit tout le nécessaire pour les tests d'intégration HTTP.
 type TestHelper struct {
 	App   *fiber.App
 	DB    *sql.DB
@@ -35,7 +34,6 @@ type TestHelper struct {
 	Admin string
 }
 
-// Seed profile IDs (explicit integers for test predictability)
 const (
 	SeedAdminID        int64 = 1
 	SeedTeacherISIL1ID int64 = 2
@@ -48,7 +46,6 @@ const (
 	SeedCompany1ID     int64 = 9
 )
 
-// NewTestHelper initialise un serveur de test avec une base SQLite en mémoire.
 func NewTestHelper() *TestHelper {
 	os.Setenv("ENV", "development")
 	os.Setenv("SUPABASE_URL", "https://test.supabase.co")
@@ -98,7 +95,6 @@ func NewTestHelper() *TestHelper {
 		AllowMethods: []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
 	}))
 
-
 	profileRepo := repository.NewProfileRepository(db)
 	teacherRepo := repository.NewTeacherRepository(db)
 	studentRepo := repository.NewStudentRepository(db)
@@ -120,7 +116,6 @@ func NewTestHelper() *TestHelper {
 	auditLogRepo := repository.NewAuditLogRepository(db)
 
 	departmentRepo := repository.NewDepartmentRepository(db)
-
 
 	authService := service.NewAuthService(profileRepo, teacherRepo, studentRepo, companyRepo, cfg)
 	testNotifier := notify.New(notificationRepo, profileRepo, "test-resend-key")
@@ -150,9 +145,7 @@ func NewTestHelper() *TestHelper {
 		supEvalRepo, companyReportRepo, notificationRepo, academicYearRepo, testNotifier,
 	)
 
-
 	notifier := notify.New(notificationRepo, profileRepo, "test-resend-key")
-
 
 	authHandler := handler.NewAuthHandler(authService, cfg, notifier)
 	adminHandler := handler.NewAdminHandler(adminService, notifier)
@@ -378,7 +371,6 @@ func MustParseResponse(resp *http.Response) map[string]any {
 	return result
 }
 
-// AssertSuccess vérifie que la réponse a success=true.
 func AssertSuccess(t TestingT, result map[string]any) {
 	t.Helper()
 	success, ok := result["success"].(bool)
@@ -387,7 +379,6 @@ func AssertSuccess(t TestingT, result map[string]any) {
 	}
 }
 
-// AssertError vérifie que la réponse a success=false.
 func AssertError(t TestingT, result map[string]any) {
 	t.Helper()
 	success, ok := result["success"].(bool)
@@ -396,7 +387,6 @@ func AssertError(t TestingT, result map[string]any) {
 	}
 }
 
-// AssertErrorContains vérifie que l'erreur contient le texte attendu.
 func AssertErrorContains(t TestingT, result map[string]any, expected string) {
 	t.Helper()
 	AssertError(t, result)
@@ -409,13 +399,10 @@ func AssertErrorContains(t TestingT, result map[string]any, expected string) {
 	}
 }
 
-// TestingT est une interface réduite pour compatibilité avec *testing.T et *testing.B.
 type TestingT interface {
 	Fatalf(format string, args ...any)
 	Helper()
 }
-
-// ---- helpers de migration et seed ----
 
 func runTestMigrations(db *sql.DB) error {
 	migrations := []string{
@@ -653,7 +640,6 @@ func runTestMigrations(db *sql.DB) error {
 
 func runTestSeed(db *sql.DB) error {
 
-
 	seeds := []string{
 
 		`INSERT OR IGNORE INTO domains (id, name) VALUES (1, 'Intelligence Artificielle')`,
@@ -665,24 +651,19 @@ func runTestSeed(db *sql.DB) error {
 		`INSERT OR IGNORE INTO domains (id, name) VALUES (7, 'Cloud Computing')`,
 		`INSERT OR IGNORE INTO domains (id, name) VALUES (8, 'Bio-Informatique')`,
 
-
 		`INSERT OR IGNORE INTO departments (id, name) VALUES (1, 'Informatique')`,
 		`INSERT OR IGNORE INTO departments (id, name) VALUES (2, 'Chimie')`,
-
 
 		`INSERT OR IGNORE INTO specialities (id, name, code, year_type, department_id) VALUES (1, 'ISIL', 'ISIL', 'master', 1)`,
 		`INSERT OR IGNORE INTO specialities (id, name, code, year_type, department_id) VALUES (2, 'Chimie', 'CHIM', 'licence', 2)`,
 		`INSERT OR IGNORE INTO specialities (id, name, code, year_type, department_id) VALUES (3, 'Électrotechnique', 'ELEC', 'master', 1)`,
 
-
 		`INSERT OR IGNORE INTO academic_years (id, label, status) VALUES (1, '2023-2024', 'cloturee')`,
 		`INSERT OR IGNORE INTO academic_years (id, label, status, submission_open_at, submission_close_at, max_wishes)
 		 VALUES (2, '2024-2025', 'active', datetime('now', '-30 days'), datetime('now', '+30 days'), 5)`,
 
-
 		`INSERT OR IGNORE INTO promotions (id, label, academic_year_id) VALUES (1, 'ISIL 2024-2025', 2)`,
 		`INSERT OR IGNORE INTO promotions (id, label, academic_year_id) VALUES (2, 'CHIM 2024-2025', 2)`,
-
 
 		`INSERT OR IGNORE INTO profiles (id, role, full_name, email, is_active) VALUES (1, 'admin', 'Admin Test', 'admin@test.dz', 1)`,
 		`INSERT OR IGNORE INTO profiles (id, role, full_name, email, is_active) VALUES (2, 'teacher', 'Dr. ISIL Teacher', 'teacher.isil@test.dz', 1)`,
@@ -694,26 +675,21 @@ func runTestSeed(db *sql.DB) error {
 		`INSERT OR IGNORE INTO profiles (id, role, full_name, email, is_active) VALUES (8, 'student', 'Étudiant ISIL 4', 'student.isil4@test.dz', 1)`,
 		`INSERT OR IGNORE INTO profiles (id, role, full_name, email, is_active) VALUES (9, 'company', 'TechCorp Algérie', 'contact@techcorp.dz', 1)`,
 
-
 		`INSERT OR IGNORE INTO teachers (id, profile_id, grade, department_id, availability_status) VALUES (1, 2, 'mca', 1, 'disponible')`,
 		`INSERT OR IGNORE INTO teachers (id, profile_id, grade, department_id, availability_status) VALUES (2, 3, 'professeur', 1, 'disponible')`,
 		`INSERT OR IGNORE INTO teachers (id, profile_id, grade, department_id, availability_status) VALUES (3, 4, 'mcb', 2, 'disponible')`,
-
 
 		`INSERT OR IGNORE INTO teacher_domains (teacher_id, domain_id) VALUES (1, 1)`,
 		`INSERT OR IGNORE INTO teacher_domains (teacher_id, domain_id) VALUES (1, 2)`,
 		`INSERT OR IGNORE INTO teacher_domains (teacher_id, domain_id) VALUES (2, 1)`,
 		`INSERT OR IGNORE INTO teacher_domains (teacher_id, domain_id) VALUES (3, 4)`,
 
-
 		`INSERT OR IGNORE INTO students (id, profile_id, student_number, speciality_id, level, promotion_id) VALUES (1, 5, '2024001', 1, 'M2', 1)`,
 		`INSERT OR IGNORE INTO students (id, profile_id, student_number, speciality_id, level, promotion_id) VALUES (2, 6, '2024002', 1, 'M2', 1)`,
 		`INSERT OR IGNORE INTO students (id, profile_id, student_number, speciality_id, level, promotion_id) VALUES (3, 7, '2024003', 2, 'L3', 2)`,
 		`INSERT OR IGNORE INTO students (id, profile_id, student_number, speciality_id, level, promotion_id) VALUES (4, 8, '2024004', 1, 'M2', 1)`,
 
-
 		`INSERT OR IGNORE INTO companies (id, profile_id, company_name, sector, description, is_verified) VALUES (1, 9, 'TechCorp Algérie', 'Technologie', 'Entreprise tech', 1)`,
-
 
 		`INSERT OR IGNORE INTO pfe_subjects (id, title, description, group_type, proposer_id, proposer_role, academic_year_id, status)
 		 VALUES (1, 'IA pour la santé', 'Sujet IA santé', 'binome', 2, 'teacher', 2, 'en_attente')`,
@@ -732,39 +708,31 @@ func runTestSeed(db *sql.DB) error {
 		`INSERT OR IGNORE INTO pfe_subjects (id, title, description, group_type, proposer_id, proposer_role, academic_year_id, status)
 		 VALUES (6, 'Blockchain', 'Sujet blockchain', 'monome', 2, 'teacher', 2, 'refuse')`,
 
-
 		`INSERT OR IGNORE INTO subject_domains (subject_id, domain_id) VALUES (1, 1)`,
 		`INSERT OR IGNORE INTO subject_domains (subject_id, domain_id) VALUES (2, 2)`,
 		`INSERT OR IGNORE INTO subject_domains (subject_id, domain_id) VALUES (3, 7)`,
 
-
 		`INSERT OR IGNORE INTO wishes (id, student_id, subject_id, academic_year_id, status) VALUES (1, 1, 2, 2, 'en_attente')`,
 		`INSERT OR IGNORE INTO wishes (id, student_id, subject_id, academic_year_id, status) VALUES (2, 1, 3, 2, 'en_attente')`,
 		`INSERT OR IGNORE INTO wishes (id, student_id, subject_id, academic_year_id, status) VALUES (3, 2, 3, 2, 'accepte')`,
-
 
 		`INSERT OR IGNORE INTO pfe_assignments (id, pfe_code, subject_id, academic_year_id, student_id, student2_id, supervisor_id, status)
 		 VALUES (1, 'PFE-ISIL-2025-001', 3, 2, 1, 2, 1, 'en_cours')`,
 		`INSERT OR IGNORE INTO pfe_assignments (id, pfe_code, subject_id, academic_year_id, student_id, supervisor_id, status)
 		 VALUES (2, 'PFE-ISIL-2025-002', 5, 2, 4, 1, 'en_cours')`,
 
-
 		`INSERT OR IGNORE INTO pfe_progress_reports (id, assignment_id, meeting_date, duration, meeting_type, topics, status)
 		 VALUES (1, 1, datetime('now', '-14 days'), 60, 'presentiel', 'Introduction, planification', 'termine')`,
 		`INSERT OR IGNORE INTO pfe_progress_reports (id, assignment_id, meeting_date, duration, meeting_type, topics, status)
 		 VALUES (2, 1, datetime('now', '-7 days'), 45, 'visio', 'État d''avancement', 'termine')`,
 
-
 		`INSERT OR IGNORE INTO supervisor_evaluations (id, pfe_assignment_id, evaluator_id, criterion5) VALUES (1, 1, 1, 3.5)`,
-
 
 		`INSERT OR IGNORE INTO defense_juries (id, assignment_id, president_id, member_id, president_confirmed, member_confirmed)
 		 VALUES (1, 1, 2, 3, 1, 1)`,
 
-
 		`INSERT OR IGNORE INTO defenses (id, assignment_id, jury_id, scheduled_at, room, status)
 		 VALUES (1, 1, 1, datetime('now', '+14 days'), 'Salle A', 'scheduled')`,
-
 
 		`INSERT OR IGNORE INTO notifications (id, recipient_id, type, payload) VALUES (1, 1, 'nouveau_sujet', '{"subject_id":1}')`,
 		`INSERT OR IGNORE INTO notifications (id, recipient_id, type, payload) VALUES (2, 2, 'sujet_valide', '{"subject_id":3}')`,
@@ -778,7 +746,6 @@ func runTestSeed(db *sql.DB) error {
 	return nil
 }
 
-// CleanDB vide toutes les tables entre les tests.
 func CleanDB(db *sql.DB) error {
 	tables := []string{
 		"audit_logs", "notifications", "company_reports", "supervisor_evaluations",
